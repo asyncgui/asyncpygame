@@ -9,6 +9,5 @@ bin/
 /Pipfile.lock
 /poetry.lock
 /dist
-/docs/
 /official_examples/
 /invest/
