@@ -66,7 +66,8 @@ def test_sdl_frequent_event_with_filter():
     from asyncpygame._api_impl.sdl_event import sdl_frequent_event
 
     async def async_fn(d):
-        async with sdl_frequent_event(d.add_subscriber, filter=lambda e: e.type in (FINGERDOWN, FINGERUP)) as finger_event:
+        async with sdl_frequent_event(d.add_subscriber, filter=lambda e: e.type in (FINGERDOWN, FINGERUP)) \
+                as finger_event:
             while True:
                 e = await finger_event()
                 if e.type in (QUIT, FINGERUP):
