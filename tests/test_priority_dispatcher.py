@@ -1,5 +1,5 @@
 def test_same_priorities():
-    from asyncpygame._api_impl.priority_dispatcher import PriorityDispatcher
+    from asyncpygame._priority_dispatcher import PriorityDispatcher
 
     d = PriorityDispatcher()
     value_list = []
@@ -15,7 +15,7 @@ def test_same_priorities():
 
 
 def test_various_priorities():
-    from asyncpygame._api_impl.priority_dispatcher import PriorityDispatcher
+    from asyncpygame._priority_dispatcher import PriorityDispatcher
 
     d = PriorityDispatcher()
     value_list = []
@@ -32,7 +32,7 @@ def test_various_priorities():
 
 
 def test_stop_dispatching():
-    from asyncpygame._api_impl.priority_dispatcher import PriorityDispatcher, STOP_DISPATCHING
+    from asyncpygame._priority_dispatcher import PriorityDispatcher, STOP_DISPATCHING
 
     d = PriorityDispatcher()
     value_list = []

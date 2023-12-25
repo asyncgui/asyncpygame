@@ -1,7 +1,5 @@
-import functools
 from pygame.event import Event
 from pygame.surface import Surface
-from ._api_impl.timer import TimeUnit
 
 
 class Runner:
@@ -9,7 +7,7 @@ class Runner:
     You should not directly instantiate this. Use :func:`init` instead.
     '''
 
-    def progress(self, delta_time: TimeUnit):
+    def progress(self, delta_time):
         '''
         You need to call this every frame for the timer-related APIs to work.
 
@@ -44,7 +42,6 @@ class Runner:
         '''
 
 
-@functools.cache
 def init() -> Runner:
     '''
     ``asyncpygame`` を使うにはこれを呼び出し、得た :class:`Runnner` インスタンスのメソッドをメインループ内で呼ぶ必要があります。
@@ -67,65 +64,22 @@ def init() -> Runner:
             screen.fill(bgcolor)
             runner.draw(screen)
             pygame.display.flip()
-
-    .. warning::
-
-        ``asyncpygame`` の他のいかなるAPIへのアクセスに先立ってこれを呼び出す必要があります。
-        例えば以下のコードでは ``init()`` を呼ぶ前に ``sleep()`` を取り出しているため、たとえまだ呼び出していなくとも正しく動きません。
-
-        .. code-block::
-
-            import asyncpygame
-
-            sleep = asyncpygame.sleep  # Doesn't work.
-            asyncpygame.init()
-
-        以下のように必ず初期化後にアクセスしてください。
-
-        .. code-block::
-
-            import asyncpygame
-
-            asyncpygame.init()
-            sleep = asyncpygame.sleep  # OK
     '''
     import types
-    from functools import partial
-    from ._api_impl import _all
-    import asyncpygame
+    from asyncpygame._timer import Timer
+    from asyncpygame._priority_dispatcher import PriorityDispatcher
+    from asyncpygame import _sleep, _sdl_event
 
-    # LOAD_FAST
-    setattr_ = setattr
-    getattr_ = getattr
+    timer = Timer()
+    _sleep.schedule_once = timer.schedule_once
+    _sleep.schedule_interval = timer.schedule_interval
 
-    timer = _all.Timer()
-    timer_apis = (
-        'sleep', 'move_on_after',
-        'anim_with_dt', 'anim_with_dt_et', 'anim_with_et', 'anim_with_ratio', 'anim_with_dt_et_ratio',
-        'fade_transition',
-        'run_in_thread', 'run_in_executor',
-    )
-    for name in timer_apis:
-        setattr_(asyncpygame, name, partial(getattr_(_all, name), timer))
-
-    dispatcher = _all.PriorityDispatcher()
-    event_apis = (
-        'sdl_event', 'sdl_frequent_event',
-    )
-    for name in event_apis:
-        setattr_(asyncpygame, name, partial(getattr_(_all, name), dispatcher.add_subscriber))
-
-    drawer = _all.Drawer()
-    drawing_apis = (
-        'DrawingRequest',
-    )
-    for name in drawing_apis:
-        setattr_(asyncpygame, name, partial(getattr_(_all, name), drawer.add_request))
+    dispatcher = PriorityDispatcher()
+    _sdl_event.add_subscriber = dispatcher.add_subscriber
 
     return types.SimpleNamespace(
         progress=timer.progress,
         dispatch_event=dispatcher.dispatch,
-        draw=drawer.draw,
     )
 
 
@@ -148,7 +102,7 @@ def run(main_coro, *, fps=30, draw_target: Surface, bgcolor):
     draw_target_fill = draw_target.fill
     progress = runner.progress
     dispatch_event = runner.dispatch_event
-    draw = runner.draw
+    # draw = runner.draw
 
     alive = True
     while alive:
@@ -159,7 +113,7 @@ def run(main_coro, *, fps=30, draw_target: Surface, bgcolor):
                 dispatch_event(event)
         progress(clock_tick(fps))
         draw_target_fill(bgcolor)
-        draw(draw_target)
+        # draw(draw_target)
         pygame_display_flip()
 
     main_task.cancel()

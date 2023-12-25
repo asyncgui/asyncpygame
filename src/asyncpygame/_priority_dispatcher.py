@@ -47,18 +47,16 @@ class Subscriber:
 
 class PriorityDispatcher:
     '''
-    The observer pattern with priority support.
+    An observer pattern implementation with priority support.
 
     .. code-block::
-
-        from asyncpygame._api_impl.priority_dispatcher import PriorityDispatcher
 
         d = PriorityDispatcher()
         values = []
 
-        # Add subscribers with the default priority (which is 0).
-        sub1 = d.add_subscriber(values.append)
-        sub2 = d.add_subscriber(lambda v: values.append(v.lower()))
+        # Add subscribers with the same priority.
+        sub1 = d.add_subscriber(values.append, priority=0)
+        sub2 = d.add_subscriber(lambda v: values.append(v.lower()), priority=0)
 
         # Because the priorities of 'sub1' and 'sub2' are the same, we cannot predict which one will be called first.
         d.dispatch("A")
