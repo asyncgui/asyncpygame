@@ -3,7 +3,7 @@ import pygame.font
 import asyncpygame as ap
 
 
-async def countdown(*, count_from=3):
+async def countdown(screen, *, count_from=3):
     font = pygame.font.SysFont(None, 400)
     fg_color = pygame.Color("white")
     img = pygame.Surface((0, 0))
@@ -13,7 +13,7 @@ async def countdown(*, count_from=3):
         rect.center = draw_target.get_rect().center
         draw_target.blit(img, rect)
 
-    with ap.DrawingRequest(draw):
+    with ap.GraphicalEntity(draw):
         for i in range(count_from, -1, -1):
             img = font.render(str(i), True, fg_color).convert_alpha()
             await ap.sleep(1000)
@@ -24,4 +24,4 @@ if __name__ == "__main__":
     pygame.init()
     pygame.display.set_caption("Countdown")
     screen = pygame.display.set_mode((400, 400))
-    ap.run(countdown(count_from=5), fps=20, draw_target=screen, bgcolor=pygame.Color("black"))
+    ap.run(countdown(screen, count_from=5), fps=20)

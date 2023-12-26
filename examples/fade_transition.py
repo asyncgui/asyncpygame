@@ -14,7 +14,7 @@ async def main(screen):
     def draw(draw_target: pygame.Surface):
         draw_target.blit(img, (0, 0, ))
 
-    with ap.DrawingRequest(draw):
+    with ap.GraphicalEntity(draw):
         for c in string.ascii_uppercase:
             rect = font.get_rect(c)
             rect.center = screen_rect.center

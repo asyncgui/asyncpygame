@@ -8,8 +8,8 @@ from ._timer import TimeUnit
 
 
 # These will be initialized by 'asyncpygame.init()'
-schedule_once = None
-schedule_interval = None
+g_schedule_once = None
+g_schedule_interval = None
 
 
 async def sleep(duration) -> Awaitable[None]:
@@ -21,7 +21,7 @@ async def sleep(duration) -> Awaitable[None]:
         await sleep(1000)
     '''
     sig = ISignal()
-    event = schedule_once(sig.set, duration)
+    event = g_schedule_once(sig.set, duration)
 
     try:
         await sig.wait()
@@ -100,7 +100,7 @@ class repeat_sleeping:
     @types.coroutine
     def __aenter__(self) -> Awaitable[Callable[[], Awaitable[TimeUnit]]]:
         task = (yield _current_task)[0][0]
-        self._event = schedule_interval(task._step, self._interval)
+        self._event = g_schedule_interval(task._step, self._interval)
         return self._sleep
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):

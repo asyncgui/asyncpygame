@@ -18,7 +18,7 @@ async def main(draw_target):
     def draw(draw_target: pygame.Surface):
         draw_target.blit(img, img_rect)
 
-    with ap.DrawingRequest(draw):
+    with ap.GraphicalEntity(draw):
         async with ap.move_on_after(6000):
             while True:
                 async for dt in ap.anim_with_dt():

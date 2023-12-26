@@ -31,7 +31,7 @@ async def button(*, text, font, bgcolor, fgcolor, zorder, dst):
     def draw(draw_target: pygame.Surface):
         draw_target.blit(final_img, dst)
 
-    with ap.DrawingRequest(draw):
+    with ap.GraphicalEntity(draw):
         while True:
             button_press_event = await ap.sdl_event(priority=zorder, filter=partial(button_press_filter, dst))
             final_img.set_alpha(150)

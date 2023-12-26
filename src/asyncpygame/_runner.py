@@ -36,7 +36,6 @@ class Runner:
         .. code-block::
 
             # in your main loop
-            screen.fill(...)
             runner.draw(screen)
             pygame.display.flip()
         '''
@@ -61,31 +60,35 @@ def init() -> Runner:
                     runner.dispatch_event(event)
             dt = clock.tick(fps)
             runner.progress(dt)
-            screen.fill(bgcolor)
             runner.draw(screen)
             pygame.display.flip()
     '''
     import types
+    import asyncpygame
     from asyncpygame._timer import Timer
     from asyncpygame._priority_dispatcher import PriorityDispatcher
-    from asyncpygame import _sleep, _sdl_event
+    from asyncpygame import _sleep, _sdl_event, _drawing_system
 
     timer = Timer()
-    _sleep.schedule_once = timer.schedule_once
-    _sleep.schedule_interval = timer.schedule_interval
+    _sleep.g_schedule_once = asyncpygame.schedule_once = timer.schedule_once
+    _sleep.g_schedule_interval = asyncpygame.schedule_interval = timer.schedule_interval
 
     dispatcher = PriorityDispatcher()
-    _sdl_event.add_subscriber = dispatcher.add_subscriber
+    _sdl_event.g_add_subscriber = dispatcher.add_subscriber
+
+    drawer = _drawing_system.Drawer()
+    _drawing_system.g_add_request = drawer.add_request
 
     return types.SimpleNamespace(
         progress=timer.progress,
         dispatch_event=dispatcher.dispatch,
+        draw=drawer.draw,
     )
 
 
-def run(main_coro, *, fps=30, draw_target: Surface, bgcolor):
+def run(main_coro, *, fps=30, draw_target: Surface=None):
     '''
-    メインループの実装の一例。実際の開発では自分で実装した方が良いでしょう。
+    メインループの実装例。実際の開発では自分で実装してください。
     '''
     import pygame
     from pygame.constants import QUIT
@@ -99,10 +102,14 @@ def run(main_coro, *, fps=30, draw_target: Surface, bgcolor):
     pygame_event_get = pygame.event.get
     pygame_display_flip = pygame.display.flip
     clock_tick = pygame.Clock().tick
-    draw_target_fill = draw_target.fill
     progress = runner.progress
     dispatch_event = runner.dispatch_event
-    # draw = runner.draw
+    draw = runner.draw
+
+    if draw_target is None:
+        from pygame.display import get_surface
+        draw_target = get_surface()
+        assert draw_target is not None
 
     alive = True
     while alive:
@@ -112,8 +119,7 @@ def run(main_coro, *, fps=30, draw_target: Surface, bgcolor):
             else:
                 dispatch_event(event)
         progress(clock_tick(fps))
-        draw_target_fill(bgcolor)
-        # draw(draw_target)
+        draw(draw_target)
         pygame_display_flip()
 
     main_task.cancel()

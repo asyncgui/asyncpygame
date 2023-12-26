@@ -8,7 +8,7 @@ from asyncgui import _current_task, _sleep_forever
 from .constants import DEFAULT_PRIORITY
 
 # will be initialized by :func:`asyncpygame.init`.
-add_subscriber = None
+g_add_subscriber = None
 
 
 def _resume_task(task_step, filter, event):
@@ -41,7 +41,7 @@ def sdl_event(*, priority=DEFAULT_PRIORITY, filter=_accept_any) -> Awaitable[Eve
         print("A FINGERDOWN event occurred")
     '''
     task = (yield _current_task)[0][0]
-    sub = add_subscriber(partial(_resume_task, task._step, filter), priority)
+    sub = g_add_subscriber(partial(_resume_task, task._step, filter), priority)
     try:
         return (yield _sleep_forever)[0][0]
     finally:
@@ -101,7 +101,7 @@ class sdl_frequent_event:
     @types.coroutine
     def __aenter__(self):
         task = (yield _current_task)[0][0]
-        self._sub = add_subscriber(
+        self._sub = g_add_subscriber(
             partial(_resume_task, task._step, self._filter),
             self._priority,
         )

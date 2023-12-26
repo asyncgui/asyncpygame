@@ -5,7 +5,7 @@ __all__ = (
     'anim_with_dt', 'anim_with_dt_et', 'anim_with_et', 'anim_with_ratio', 'anim_with_dt_et_ratio',
     'run_in_thread', 'run_in_executor',
     'sdl_event', 'sdl_frequent_event',
-    # 'DrawingRequest',
+    'GraphicalEntity',
 )
 
 from asyncgui import *
@@ -16,4 +16,5 @@ from ._sleep import (
 )
 from ._thread import run_in_thread, run_in_executor
 from ._sdl_event import sdl_event, sdl_frequent_event
+from ._drawing_system import GraphicalEntity
 from ._runner import init
