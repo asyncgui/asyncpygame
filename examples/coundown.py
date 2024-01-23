@@ -1,27 +1,49 @@
 import pygame
 import pygame.font
+from pygame.colordict import THECOLORS as COLORS
 import asyncpygame as ap
 
 
-async def countdown(screen, *, count_from=3):
+async def countdown(*, clock: ap.Clock, draw_target: pygame.Surface, count_from=3):
+    pygame_display_flip = pygame.display.flip
     font = pygame.font.SysFont(None, 400)
-    fg_color = pygame.Color("white")
-    img = pygame.Surface((0, 0))
+    bgcolor = COLORS["black"]
+    fgcolor = COLORS["white"]
+    center = draw_target.get_rect().center
 
-    def draw(draw_target: pygame.Surface):
-        rect = img.get_rect()
-        rect.center = draw_target.get_rect().center
-        draw_target.blit(img, rect)
+    for i in range(count_from, -1, -1):
+        draw_target.fill(bgcolor)
+        img = font.render(str(i), True, fgcolor)
+        img_rect = img.get_rect()
+        img_rect.center = center
+        draw_target.blit(img, img_rect)
+        pygame_display_flip()
+        await clock.sleep(1000)
 
-    with ap.GraphicalEntity(draw):
-        for i in range(count_from, -1, -1):
-            img = font.render(str(i), True, fg_color).convert_alpha()
-            await ap.sleep(1000)
-        await ap.sleep_forever()
+
+def main():
+    pygame.init()
+    screen = pygame.display.set_mode((400, 400))
+
+    clock = ap.Clock()
+    root_task = ap.start(countdown(clock=clock, draw_target=screen, count_from=5))
+
+    # LOAD_FAST
+    QUIT = pygame.QUIT
+    pygame_event_get = pygame.event.get
+    pygame_clock_tick = pygame.Clock().tick
+
+    alive = True
+    while alive:
+        for event in pygame_event_get():
+            if event.type == QUIT:
+                alive = False
+        dt = pygame_clock_tick(30)
+        clock.tick(dt)
+
+    root_task.cancel()
+    pygame.quit()
 
 
 if __name__ == "__main__":
-    pygame.init()
-    pygame.display.set_caption("Countdown")
-    screen = pygame.display.set_mode((400, 400))
-    ap.run(countdown(screen, count_from=5), fps=20)
+    main()

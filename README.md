@@ -1,18 +1,10 @@
 # AsyncPygame
 
-```python
-import asyncpygame as ap
+https://youtu.be/O_AF4xWb0ok
 
-# Waits for a 1 second
-await ap.sleep(1000)
-
-# Waits for a mouse button to be pressed
-event = await ap.sdl_event(filter=lambda event: event.type == MOUSEBUTTONDOWN)
-```
-
-(This library is not at a level where it can be used in a production environment.)
+(This library is in a **highly experimental state**. Please refrain from using it in a production environment.)
 
 ## Tested on
 
-- CPython 3.10 + pygame-ce 2.3.2
-- CPython 3.11 + pygame-ce 2.3.2
+- CPython 3.10 + pygame-ce 2.4.0
+- CPython 3.11 + pygame-ce 2.4.0

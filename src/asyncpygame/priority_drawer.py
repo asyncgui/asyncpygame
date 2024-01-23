@@ -1,20 +1,22 @@
+__all__ = ('PriorityDrawer', 'GraphicalEntity', )
+
 from typing import TypeAlias
 from collections.abc import Callable
 from heapq import merge as heapq_merge
 
 from pygame.surface import Surface
 
-from .constants import DEFAULT_ZORDER
+from .constants import DEFAULT_PRIORITY
 
 
 DrawFunc: TypeAlias = Callable[[Surface], None]
 
 
 class DrawingRequest:
-    __slots__ = ('zorder', 'draw_func', 'cancelled', )
+    __slots__ = ('priority', 'draw_func', 'cancelled', )
 
-    def __init__(self, zorder, draw_func):
-        self.zorder = zorder
+    def __init__(self, priority, draw_func):
+        self.priority = priority
         self.draw_func = draw_func
         self.cancelled = False
 
@@ -22,27 +24,39 @@ class DrawingRequest:
         self.cancelled = True
 
     def __eq__(self, other):
-        return self.zorder == other.zorder
+        return self.priority == other.priority
 
     def __ne__(self, other):
-        return self.zorder != other.zorder
+        return self.priority != other.priority
 
     def __lt__(self, other):
-        return self.zorder < other.zorder
+        return self.priority < other.priority
 
     def __le__(self, other):
-        return self.zorder <= other.zorder
+        return self.priority <= other.priority
 
     def __gt__(self, other):
-        return self.zorder > other.zorder
+        return self.priority > other.priority
 
     def __ge__(self, other):
-        return self.zorder >= other.zorder
+        return self.priority >= other.priority
 
 
-class Drawer:
+class PriorityDrawer:
     '''
-    Z-order による順番を考慮した描画を実現するクラス。通常は自分で直接インスタンスを作る必要はありません。
+    A drawing system with priority support.
+
+    .. code-block::
+
+        class Sprite(GraphicalEntity):
+            ...
+
+        drawer = PriorityDrawer()
+        sprite1 = Sprite(drawer, priority=0)
+        sprite2 = Sprite(drawer, priority=2)
+
+        # The *lower* the priority of a :class:`GraphicalEntity` is, the earlier it will be drawed.
+        drawer.draw(screen)
     '''
     __slots__ = ('_reqs', '_reqs_2', '_reqs_to_be_added', '_reqs_to_be_added_2', )
 
@@ -80,64 +94,38 @@ class Drawer:
             self._reqs = reqs2
             self._reqs_2 = reqs
 
-    def add_request(self, draw_func, zorder) -> DrawingRequest:
-        req = DrawingRequest(zorder, draw_func)
+    def add_request(self, draw_func, priority, DrawingRequest=DrawingRequest) -> DrawingRequest:
+        req = DrawingRequest(priority, draw_func)
         self._reqs_to_be_added.append(req)
         return req
 
 
-# will be initialized by 'asyncpygame.init()'
-g_add_request = None
-
-
 class GraphicalEntity:
-    '''
-    :class:`Drawer` の仕組みにのっとって何かを描画したい時に用いるクラス。
-
-    .. code-block::
-
-        class FillColor(GraphicalEntity):
-            def __init__(self, color):
-                ...
-
-            def draw(self, draw_target: Surface):
-                draw_target.fill((0, 0, 0, 255))
-
-        class Sprite(GraphicalEntity):
-            def __init__(self, image, pos):
-                ...
-
-            def draw(self, draw_target: Surface):
-                draw_target.blit(self.image, self.pos)
-
-        fill_color = FillColor(..., zorder=0)
-        sprite = Sprite(..., zorder=1)
-    '''
-
-    def __init__(self, *, draw_func=None, zorder=DEFAULT_ZORDER, visible=True):
-        self.__req = g_add_request(self.draw if draw_func is None else draw_func, zorder)
+    def __init__(self, drawer: PriorityDrawer, *, draw_func=None, priority=DEFAULT_PRIORITY, visible=True):
+        self.__add_request = drawer.add_request
+        self.__req = drawer.add_request(self.draw if draw_func is None else draw_func, priority)
         self.visible = visible
 
     def draw(self, draw_target: Surface):
         raise NotImplementedError
 
     @property
-    def zorder(self) -> int:
+    def priority(self) -> int:
         '''
         描画順。この値が小さい者ほど先に描画を行う。値が同じ者同士の順は未定義。
         '''
-        return self.__req.zorder
+        return self.__req.priority
 
-    @zorder.setter
-    def zorder(self, zorder: int):
+    @priority.setter
+    def priority(self, priority: int):
         req = self.__req
-        if req.zorder == zorder:
+        if req.priority == priority:
             return
         if req.cancelled:
-            req.zorder = zorder
+            req.priority = priority
         else:
             req.cancel()
-            self.__req = g_add_request(req.draw_func, zorder)
+            self.__req = self.__add_request(req.draw_func, priority)
 
     @property
     def draw_func(self) -> DrawFunc:
@@ -163,6 +151,6 @@ class GraphicalEntity:
         if req.cancelled is (not visible):
             return
         if req.cancelled:
-            self.__req = g_add_request(req.draw_func, req.zorder)
+            self.__req = self.__add_request(req.draw_func, req.priority)
         else:
             req.cancel()

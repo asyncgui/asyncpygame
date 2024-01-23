@@ -25,7 +25,8 @@ packages = [
 [tool.poetry.dependencies]
 python = "^3.10"
 asyncgui = "~0.6"
-pygame-ce = "^2.3.2"
+pygame-ce = "^2.4.0"
+asyncgui-ext-clock = "~0.1"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"

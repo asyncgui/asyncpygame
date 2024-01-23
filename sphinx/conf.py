@@ -67,7 +67,7 @@ intersphinx_mapping = {
 autodoc_default_options = {
 #    'members': True,
 #    'undoc-members': True,
-   'no-show-inheritance': True,
+   'show-inheritance': True,
 }
 # autodoc_type_aliases = {
 #     'TimeUnit': 'TimeUnit',

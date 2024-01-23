@@ -33,16 +33,16 @@ class Subscriber:
         return self._priority != other._priority
 
     def __lt__(self, other):
-        return self._priority < other._priority
-
-    def __le__(self, other):
-        return self._priority <= other._priority
-
-    def __gt__(self, other):
         return self._priority > other._priority
 
-    def __ge__(self, other):
+    def __le__(self, other):
         return self._priority >= other._priority
+
+    def __gt__(self, other):
+        return self._priority < other._priority
+
+    def __ge__(self, other):
+        return self._priority <= other._priority
 
 
 class PriorityDispatcher:
@@ -64,7 +64,7 @@ class PriorityDispatcher:
         d.dispatch("B")
         assert set(values[2:]) == {"B", "b", }
 
-        # The higher the priority, the earlier a callback will be called.
+        # The higher the priority of a subscriber is, the earlier its callback function will be called.
         d.add_subscriber(lambda v: values.append(v + v), priority=1)
         d.dispatch("C")
         assert values[4] == "CC"
@@ -89,8 +89,8 @@ class PriorityDispatcher:
         subs = self._subs
         subs_tba = self._subs_to_be_added
         if subs_tba:
-            subs_tba.sort(reverse=True)
-            sub_iter = heapq_merge(subs, subs_tba, reverse=True)
+            subs_tba.sort()
+            sub_iter = heapq_merge(subs, subs_tba)
             subs_tba2 = self._subs_to_be_added_2
             subs_tba2.clear()
             self._subs_to_be_added = subs_tba2
