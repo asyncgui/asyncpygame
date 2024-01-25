@@ -48,3 +48,61 @@ def test_stop_dispatching(d):
     s.cancel()
     d.dispatch('C')
     assert value_list == ['A', 'A', 'B', 'C', 'C']
+
+
+def test_wait_no_filter(d):
+    from asyncgui import start
+
+    async def async_fn():
+        assert await d.wait() == 'Hello'
+        assert await d.wait() == 'World'
+
+    task = start(async_fn())
+    d.dispatch('Hello')
+    assert not task.finished
+    d.dispatch('World')
+    assert task.finished
+
+
+def test_wait_with_filter(d):
+    from asyncgui import start
+
+    task = start(d.wait(filter=lambda obj: obj == 'World'))
+    d.dispatch('Hello')
+    assert not task.finished
+    d.dispatch('World')
+    assert task.finished
+
+
+def test_repeat_waiting_no_filter(d):
+    from asyncgui import start
+
+    async def async_fn():
+        async with d.repeat_waiting() as wait_any:
+            assert await wait_any() == 'Hello'
+            assert await wait_any() == 'World'
+
+    task = start(async_fn())
+    d.dispatch('Hello')
+    assert not task.finished
+    d.dispatch('World')
+    assert task.finished
+
+
+def test_repeat_waiting_with_filter(d):
+    from asyncgui import start
+
+    async def async_fn():
+        async with d.repeat_waiting(filter=str.isupper) as wait_upper:
+            while True:
+                s = await wait_upper()
+                if s.upper() == 'QUIT':
+                    break
+
+    task = start(async_fn())
+    d.dispatch('EXIT')
+    assert not task.finished
+    d.dispatch('quit')
+    assert not task.finished
+    d.dispatch('QUIT')
+    assert task.finished

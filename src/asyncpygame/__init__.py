@@ -1,6 +1,6 @@
 __all__ = (
     'DEFAULT_PRIORITY', 'STOP_DISPATCHING',
-    'PriorityDispatcher', 'SDLEventDispatcher',
+    'Clock', 'PriorityDispatcher', 'SDLEventDispatcher',
 )
 
 from asyncgui import *

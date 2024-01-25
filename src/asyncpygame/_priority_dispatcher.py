@@ -1,9 +1,25 @@
-from collections.abc import Callable
+from collections.abc import Awaitable, Callable
+from contextlib import AbstractAsyncContextManager
 from dataclasses import dataclass
 from heapq import merge as heapq_merge
+import types
+from functools import partial
 
+from asyncgui import _current_task, _sleep_forever
 
 from .constants import DEFAULT_PRIORITY, STOP_DISPATCHING
+
+
+def _resume_task(task_step, filter, event):
+    r = filter(event)
+    if r:
+        task_step(event)
+    return r
+
+
+def _accept_any(event):
+    '''default filter'''
+    return True
 
 
 @dataclass(slots=True)
@@ -120,3 +136,89 @@ class PriorityDispatcher:
         sub = Subscriber(priority, func)
         self._subs_to_be_added.append(sub)
         return sub
+
+    @types.coroutine
+    def wait(self, *, priority=DEFAULT_PRIORITY, filter=_accept_any) -> Awaitable:
+        '''
+        Waits for anything to be dispatched (by default).
+
+        .. code-block::
+
+            async def async_fn():
+                obj = await d.wait()
+                assert obj == 'Hello'
+
+            d = PriorityDispatcher()
+            asyncpygame.start(async_fn())
+            d.dispatch('Hello')
+
+        You probably want to wait for something specific in most cases, which can be achieved by the ``filter``
+        parameter.
+
+        .. code-block::
+
+            async def async_fn():
+                e = await d.wait(filter=lambda e: e.type == pygame.FINGERDOWN)
+                print(e.x, e.y)
+        '''
+        task = (yield _current_task)[0][0]
+        sub = self.add_subscriber(partial(_resume_task, task._step, filter), priority)
+        try:
+            return (yield _sleep_forever)[0][0]
+        finally:
+            sub.cancel()
+
+    def repeat_waiting(self, *, priority=DEFAULT_PRIORITY, filter=_accept_any) \
+            -> AbstractAsyncContextManager[Callable[[], Awaitable]]:
+        '''
+        Returns an async context manager that provides an efficient way to repeat waiting.
+
+        .. code-block::
+
+            async with repeat_waiting() as wait_anything:
+                while True:
+                    obj = await wait_anything()
+                    print(obj)
+
+        **Restriction**
+
+        You are not allowed to perform any kind of async operations inside the with-block except the one in the
+        as-clause.
+
+        .. code-block::
+
+            async with repeat_waiting() as wait_anything:
+                await wait_anything()  # OK
+                await something_else  # NOT ALLOWED
+                async with async_context_manager:  # NOT ALLOWED
+                    ...
+                async for __ in async_iterator:  # NOT ALLOWED
+                    ...
+        '''
+        return _repeat_waiting(self, filter, priority)
+
+
+class _repeat_waiting:
+    __slots__ = ('dispatcher', 'filter', 'priority', 'sub', )
+
+    def __init__(self, dispatcher, filter, priority):
+        self.dispatcher = dispatcher
+        self.filter = filter
+        self.priority = priority
+
+    @staticmethod
+    @types.coroutine
+    def _wait_for_an_event_to_occur(_sleep_forever=_sleep_forever):
+        return (yield _sleep_forever)[0][0]
+
+    @types.coroutine
+    def __aenter__(self):
+        task = (yield _current_task)[0][0]
+        self.sub = self.dispatcher.add_subscriber(
+            partial(_resume_task, task._step, self.filter),
+            self.priority,
+        )
+        return self._wait_for_an_event_to_occur
+
+    async def __aexit__(self, *args):
+        self.sub.cancel()

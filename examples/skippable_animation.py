@@ -14,7 +14,7 @@ async def skippable_animation(
     sprite.rect = src_rect = sprite.image.get_rect()
     dst_rect = draw_target.get_rect()
 
-    mouse_button_down = partial(dispatcher.wait_sdl_event, filter=lambda e: e.type == pygame.MOUSEBUTTONDOWN)
+    mouse_button_down = partial(dispatcher.wait, filter=lambda e: e.type == pygame.MOUSEBUTTONDOWN)
     move_sprite = partial(clock.anim_attrs, src_rect, duration=1000)
 
     while True:

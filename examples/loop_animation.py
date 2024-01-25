@@ -20,7 +20,7 @@ async def loop_animation(clock: ap.Clock, draw_target: pygame.Surface, group: py
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((1280, 720), pygame.FULLSCREEN)
+    screen = pygame.display.set_mode((1280, 720))
 
     clock = ap.Clock()
     group = pygame.sprite.Group()
