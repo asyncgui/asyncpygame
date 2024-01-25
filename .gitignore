@@ -1,0 +1,14 @@
+__pycache__/
+bin/
+*.pyc
+*.pyo
+/.venv/
+/asyncpygame.egg-info/
+/.pytest_cache/
+/*kivymd*/
+/Pipfile.lock
+/poetry.lock
+/dist
+/docs/
+/official_examples/
+/invest/
