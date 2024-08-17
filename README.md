@@ -1,35 +1,41 @@
 # AsyncPygame
 
-https://youtu.be/O_AF4xWb0ok
+Let's say you want to do:
 
-(This library is in a **highly experimental state**. Please refrain from using it in a production environment.)
+1. `print('A')`
+1. wait for 1000ms to elapse
+1. `print('B')`
+1. wait for a mouse button to be pressed
+1. `print('C')`
+
+in that order.
+The `asyncpygame` module allows you to implement that like this:
 
 ```python
-import asyncpygame as ap
-
-
-async def print_FINGERDOWN_event(d):
-    while True:
-        e = await d.wait(filter=lambdae: e.type == pygame.FINGERDOWN)
-        print('FINGERDOWN', e.x, e.y)
-
-
-dispatcher = ap.SDLEventDispatcher()
-ap.start(print_FINGERDOWN_event(dispatcher))
-
-
-# main loop
-alive = True
-while alive:
-    for event in pygame_event_get():
-        if event.type == QUIT:
-            alive = False
-        else:
-            dispatcher.dispatch(event)
-    ...
+async def what_you_want_to_do(*, clock, sdlevent, **kwargs):
+    print('A')
+    await clock.sleep(1000)
+    print('B')
+    e = await sdlevent.wait(MOUSEBUTTONDOWN)
+    print('C')
 ```
+
+[Youtube](https://youtu.be/kvy0_aVUFLM)
+
+
+## Installation
+
+Pin the minor version.
+
+```text
+poetry add asyncpygame@~0.1
+pip install "asyncpygame>=0.1,<0.2"
+```
+
 
 ## Tested on
 
-- CPython 3.10 + pygame-ce 2.4.0
-- CPython 3.11 + pygame-ce 2.4.0
+- CPython 3.10 + pygame-ce 2.5.1
+- CPython 3.11 + pygame-ce 2.5.1
+- CPython 3.12 + pygame-ce 2.5.1
+

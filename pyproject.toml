@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "asyncpygame"
-version = "0.1.0.dev0"
+version = "0.1.0"
 description = "Async library for PyGame"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
@@ -15,6 +15,7 @@ classifiers=[
     'Programming Language :: Python',
     'Programming Language :: Python :: 3.10',
     'Programming Language :: Python :: 3.11',
+    'Programming Language :: Python :: 3.12',
     'Topic :: Software Development :: Libraries',
     'Operating System :: OS Independent',
 ]
@@ -26,7 +27,7 @@ packages = [
 python = "^3.10"
 asyncgui = "~0.6"
 pygame-ce = "^2.4.0"
-asyncgui-ext-clock = "~0.1"
+asyncgui-ext-clock = "~0.5"
 
 [tool.poetry.group.dev.dependencies]
 pytest = "^7.4.3"
@@ -36,6 +37,9 @@ flake8 = "^6.1.0"
 sphinx = "^7.2.6"
 sphinx-autobuild = "^2021.3.14"
 furo = "^2023.9.10"
+
+[tool.poetry.group.invest.dependencies]
+matplotlib = "^3.9.2"
 
 [build-system]
 requires = ["poetry-core"]
