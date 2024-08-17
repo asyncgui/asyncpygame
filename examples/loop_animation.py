@@ -1,52 +1,33 @@
+from functools import partial
+
 import pygame
 import pygame.font
 from pygame.colordict import THECOLORS as COLORS
 import asyncpygame as ap
 
 
-async def loop_animation(clock: ap.Clock, draw_target: pygame.Surface, group: pygame.sprite.Group, **kwargs):
+async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, **kwargs):
+    pygame.init()
+    pygame.display.set_caption("Loop Animation")
+
+    screen = pygame.display.set_mode((1280, 720))
     font = pygame.font.SysFont(None, 200)
-    sprite = pygame.sprite.Sprite(group)
-    sprite.image = font.render("(-.-)", True, COLORS["white"]).convert_alpha()
-    sprite.rect = src_rect = sprite.image.get_rect()
-    dst_rect = draw_target.get_rect()
+    img = font.render("(^.^)", True, COLORS["white"]).convert_alpha()
+    img_rect = img.get_rect()
+    screen_rect = screen.get_rect()
+
+    r = executor.register
+    r(partial(screen.fill, COLORS["black"]), priority=0)
+    r(partial(screen.blit, img, img_rect), priority=0x100)
+    r(pygame.display.flip, priority=0xFFFFFF00)
+    del r
 
     while True:
-        await clock.anim_attrs(src_rect, duration=1000, right=dst_rect.right)
-        await clock.anim_attrs(src_rect, duration=1000, bottom=dst_rect.bottom)
-        await clock.anim_attrs(src_rect, duration=1000, x=dst_rect.x)
-        await clock.anim_attrs(src_rect, duration=1000, y=dst_rect.y)
-
-
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((1280, 720))
-
-    clock = ap.Clock()
-    group = pygame.sprite.Group()
-    root_task = ap.start(loop_animation(clock=clock, draw_target=screen, group=group))
-
-    # LOAD_FAST
-    QUIT = pygame.QUIT
-    pygame_display_flip = pygame.display.flip
-    pygame_event_get = pygame.event.get
-    pygame_clock_tick = pygame.Clock().tick
-    bgcolor = COLORS["black"]
-
-    alive = True
-    while alive:
-        for event in pygame_event_get():
-            if event.type == QUIT:
-                alive = False
-        dt = pygame_clock_tick(30)
-        clock.tick(dt)
-        screen.fill(bgcolor)
-        group.draw(screen)
-        pygame_display_flip()
-
-    root_task.cancel()
-    pygame.quit()
+        await clock.anim_attrs(img_rect, right=screen_rect.right, duration=1000)
+        await clock.anim_attrs(img_rect, bottom=screen_rect.bottom, duration=1000)
+        await clock.anim_attrs(img_rect, left=screen_rect.left, duration=1000)
+        await clock.anim_attrs(img_rect, top=screen_rect.top, duration=1000)
 
 
 if __name__ == "__main__":
-    main()
+    ap.run(main, fps=60)

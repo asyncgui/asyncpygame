@@ -5,10 +5,5 @@ bin/
 /.venv/
 /asyncpygame.egg-info/
 /.pytest_cache/
-/*kivymd*/
-/Pipfile.lock
-/poetry.lock
 /dist
 /docs/
-/official_examples/
-/invest/
