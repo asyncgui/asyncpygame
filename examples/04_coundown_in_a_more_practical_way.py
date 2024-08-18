@@ -21,9 +21,7 @@ async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, **kwargs):
     count_from = 3
     for i in range(count_from, -1, -1):
         img = font.render(str(i), True, fgcolor).convert_alpha()
-        img_rect = img.get_rect()
-        img_rect.center = screen_center
-        req.callback = partial(screen.blit, img, img_rect)
+        req.callback = partial(screen.blit, img, img.get_rect(center=screen_center))
         await clock.sleep(1000)
 
 
