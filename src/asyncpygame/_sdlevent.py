@@ -108,7 +108,8 @@ class SDLEvent:
 
     def dispatch(self, event: Event):
         '''
-        :meta exclude:
+        イベントの発生を待っているタスクにイベントを通知する。
+        :func:`asyncpygame.run` のみがこれを呼ぶべきでありアプリ側からは呼ぶべきではない。
         '''
         subs = self._subs
         subs_tba = self._subs_to_be_added
@@ -142,7 +143,7 @@ class SDLEvent:
 
     def subscribe(self, event_types, callback, priority=DEFAULT_PRIORITY) -> Subscriber:
         '''
-        :meta exclude:
+        async型APIの礎となっているコールバック型API。直接触るべきではない。
         '''
         sub = Subscriber(priority, callback, event_types)
         self._subs_to_be_added.append(sub)
@@ -150,6 +151,9 @@ class SDLEvent:
 
     @types.coroutine
     def wait(self, *event_types, filter=_accept_any, priority=DEFAULT_PRIORITY, consume=False) -> Awaitable[Event]:
+        '''
+        Waits for any of the specified types of events to occur.
+        '''
         task = (yield _current_task)[0][0]
         sub = self.subscribe(event_types, partial(_callback, filter, consume, task._step), priority)
         try:
@@ -160,7 +164,7 @@ class SDLEvent:
     @asynccontextmanager
     async def wait_freq(self, *event_types, filter=_accept_any, priority=DEFAULT_PRIORITY, consume=False):
         '''
-        ``MOUSEMOTION`` や ``FINGERMOTION`` などの頻りに起こりうるイベントを効率良く捌ける事があるかもしれない機能。
+        ``MOUSEMOTION`` や ``FINGERMOTION`` などの頻りに起こりうるイベントを効率良く捌けるかもしれない機能。
         以下のようなコードは
 
         .. code-block::
@@ -191,7 +195,7 @@ class SDLEvent:
                     e = await finger_motion()
                     ...
 
-        またas節で得た関数(上のコードでいう ``finger_motion``)は必ずそのwithブロック内で直に用いるようにしてください。
+        注意点としてas節で得た関数(上のコードでいう ``finger_motion``)は必ずそのwithブロック内で直に用いるようにしてください。
         以下の様に別の関数に渡したり、戻り値を別の関数に渡してはいけません。
 
         .. code-block::

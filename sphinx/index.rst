@@ -9,8 +9,10 @@ Async Library for PyGame.
 
    reference
 
-Dependencies
-------------
+Important Dependencies
+----------------------
+
+You probably want to read their documentation as well.
 
 * https://asyncgui.github.io/asyncgui/
 * https://asyncgui.github.io/asyncgui-ext-clock/
