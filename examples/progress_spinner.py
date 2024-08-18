@@ -28,7 +28,7 @@ async def progress_spinner(
     min_arc_angle=0.3, speed=1.0,
     clock: ap.Clock, executor: ap.PriorityExecutor, priority, **kwargs
 ):
-    R1 = 0.2
+    R1 = 0.4
     R2 = math.tau - min_arc_angle * 2
     next_start = itertools.accumulate(itertools.cycle((R1, R1, R1 + R2, R1, )), initial=0).__next__
     next_stop = itertools.accumulate(itertools.cycle((R1 + R2, R1, R1, R1, )), initial=min_arc_angle).__next__

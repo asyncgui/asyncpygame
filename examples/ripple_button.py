@@ -25,15 +25,15 @@ def out_quad(p):
     return -1.0 * p * (p - 2.0)
 
 
-def calc_minimum_enclosing_circle_radius(center, rect: Rect):
+def calc_minimum_enclosing_circle_radius(center_of_circle, rect: Rect):
     '''
-    Calculates the radius of the minimum enclosing circle for a given center and rectangle.
+    Calculates the radius of the minimum enclosing circle for a given rectangle.
 
     .. warning::
 
-        The ``center`` point must be within the ``rect``.
+        The ``center_of_circle`` point must be within the ``rect``.
     '''
-    x, y = center
+    x, y = center_of_circle
     return (max(x - rect.x, rect.right - x) ** 2 + max(y - rect.y, rect.bottom - y) ** 2) ** 0.5
 
 

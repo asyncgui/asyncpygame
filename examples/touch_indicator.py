@@ -20,7 +20,9 @@ class Ring:
         pygame.draw.circle(self.draw_target, self.color, self.pos, self.radius, self.line_width)
 
 
-async def touch_indicator(*, draw_target: Surface, color: Color=COLORS["black"], executor: ap.PriorityExecutor, sdlevent: ap.SDLEvent, priority, **kwargs):
+async def touch_indicator(*, sdlevent: ap.SDLEvent, priority, **kwargs):
+    common_params = {'sdlevent': sdlevent, 'priority': priority, **kwargs}
+    common_params.setdefault('color', COLORS["black"])
     async with (
         ap.open_nursery() as nursery,
         sdlevent.wait_freq(MOUSEBUTTONDOWN, FINGERDOWN, priority=priority, filter=lambda e: not getattr(e, 'touch', False)) as touch_down,
@@ -31,7 +33,7 @@ async def touch_indicator(*, draw_target: Surface, color: Color=COLORS["black"],
                 f = draw_ring_under_mouse_cursor
             else:
                 f = draw_ring_under_finger
-            nursery.start(f(e_down, draw_target=draw_target, color=color, executor=executor, sdlevent=sdlevent, priority=priority))
+            nursery.start(f(e_down, **common_params))
 
 
 async def draw_ring_under_mouse_cursor(e_down: Event, *, draw_target, color, executor, sdlevent, priority, **kwargs):
@@ -58,7 +60,7 @@ async def draw_ring_under_finger(e_down: Event, *, draw_target, color, executor,
                 ring.pos = e.pos
 
 
-async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, sdlevent: ap.SDLEvent, **kwargs):
+async def main(*, executor: ap.PriorityExecutor, **kwargs):
     pygame.init()
     pygame.display.set_caption("Touch Indicator")
     screen = pygame.display.set_mode((1280, 720))
@@ -66,7 +68,7 @@ async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, sdlevent: ap.S
     executor.register(partial(screen.fill, COLORS["white"]), priority=0)
     executor.register(pygame.display.flip, priority=0xFFFFFF00)
 
-    await touch_indicator(draw_target=screen, executor=executor, sdlevent=sdlevent, clock=clock, priority=0x100)
+    await touch_indicator(draw_target=screen, executor=executor, priority=0x100, **kwargs)
 
 
 if __name__ == "__main__":
