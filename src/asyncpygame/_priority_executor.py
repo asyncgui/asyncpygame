@@ -39,6 +39,26 @@ class ExecutionRequest:
 
 
 class PriorityExecutor:
+    '''
+    Calls registered functions in the order of their priorities.
+
+    .. code-block::
+
+        executor = PriorityExecutor()
+
+        values = []
+        executor.register(lambda: values.append('A'), priority=2)
+        executor.register(lambda: values.append('B'), priority=0)
+        executor()
+        assert values == ['B', 'A', ]
+        values.clear()
+
+        executor.register(lambda: values.append('C'), priority=1)
+        executor()
+        assert values == ['B', 'C', 'A', ]
+
+    The :func:`asyncpygame.run` creates an instance of this class and calls its :meth:`__call__` every frame.
+    '''
     __slots__ = ('_reqs', '_reqs_2', '_reqs_to_be_added', '_reqs_to_be_added_2', )
 
     def __init__(self):
