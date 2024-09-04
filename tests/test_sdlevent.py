@@ -165,7 +165,7 @@ def test_wait_freq_with_consume(se, event_type, task1_finished):
 
 
 def test_wait_freq_mixed_with_another_type_of_awaitable(se):
-    from asyncgui import start, AsyncEvent
+    from asyncgui import start, Event
 
     async def async_fn():
         async with se.wait_freq(1, 2) as event:
@@ -173,7 +173,7 @@ def test_wait_freq_mixed_with_another_type_of_awaitable(se):
             await ae.wait()
             await event()
 
-    ae = AsyncEvent()
+    ae = Event()
     task = start(async_fn())
     for __ in range(3):
         se.dispatch(E(1))

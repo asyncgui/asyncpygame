@@ -35,7 +35,7 @@ async def main(*, executor: ap.PriorityExecutor, clock: ap.Clock, **kwargs):
     async with ap.open_nursery() as root_nursery:
         root_nursery.start(touch_indicator(color=COLORS['white'], priority=0xFFFFFE00, **common_params))
 
-        button_release = ap.AsyncEvent()
+        button_release = ap.Event()
         async with ap.run_as_daemon(ripple_button(
             text="start", font=button_font, dst=Rect(0, 600, 600, 200).inflate(-40, -40),
             on_release=button_release.fire, priority=0x100, **common_params,
