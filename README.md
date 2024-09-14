@@ -35,7 +35,7 @@ pip install "asyncpygame>=0.1,<0.2"
 
 ## Tested on
 
-- CPython 3.10 + pygame-ce 2.5.1
-- CPython 3.11 + pygame-ce 2.5.1
-- CPython 3.12 + pygame-ce 2.5.1
+- CPython 3.10 + pygame-ce 2.5
+- CPython 3.11 + pygame-ce 2.5
+- CPython 3.12 + pygame-ce 2.5
 
