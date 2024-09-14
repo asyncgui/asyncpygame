@@ -1,7 +1,7 @@
 [tool.poetry]
 name = "asyncpygame"
-version = "0.1.1"
-description = "Async library for PyGame"
+version = "0.1.2.dev0"
+description = "PyGame meets async/await"
 authors = ["Nattōsai Mitō <flow4re2c@gmail.com>"]
 license = "MIT"
 readme = 'README.md'
