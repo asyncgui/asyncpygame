@@ -15,3 +15,11 @@ API Reference
     :members:
     :undoc-members:
     :exclude-members: dispatch, subscribe
+
+(sub module) scene_switcher
+===========================
+
+.. automodule:: asyncpygame.scene_switcher
+    :members:
+    :undoc-members:
+    :exclude-members:
