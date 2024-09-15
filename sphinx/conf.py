@@ -54,8 +54,6 @@ todo_include_todos = True
 # https://www.sphinx-doc.org/en/master/usage/extensions/intersphinx.html#configuration
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
-    'kivy': ('https://kivy.org/doc/master', None),
-    'trio': ('https://trio.readthedocs.io/en/stable/', None),
     'asyncgui': ('https://asyncgui.github.io/asyncgui/', None),
     'pygame': ('https://pyga.me/docs/', None),
 }
@@ -70,46 +68,12 @@ autodoc_default_options = {
    'no-show-inheritance': True,
 }
 # autodoc_type_aliases = {
-#     'TimeUnit': 'TimeUnit',
-#     'TimerCallback': 'TimerCallback',
+#     'Transition': 'Transition',
 # }
+autoclass_content = 'both'
+# autodoc_typehints_format = 'short'
+# python_use_unqualified_type_names = True
 
 # -- Options for tabs extension ---------------------------------------
 # https://sphinx-tabs.readthedocs.io/en/latest/
 sphinx_tabs_disable_tab_closing = True
-
-
-import re
-
-def modify_signature(app, what: str, name: str, obj, options, signature, return_annotation: str,
-                     prefix="asyncpygame.",
-                     len_prefix=len("asyncpygame."),
-                     int_pattern = re.compile(r"\bint\b"),
-                     group1={'TimerEvent'},
-                     # group2={'current_task', 'sleep_forever', 'open_nursery', },
-                     # group3={"TaskState." + s for s in "CREATED STARTED CANCELLED FINISHED".split()},
-                     # group4={'wait_all_cm', 'wait_any_cm', 'run_as_secondary', 'run_as_primary', 'run_as_daemon', },
-                     # group5={'open_nursery', },
-                     ):
-    if not name.startswith(prefix):
-        return (signature, return_annotation, )
-    name = name[len_prefix:]
-    # if return_annotation is not None:
-    #     return_annotation = int_pattern.sub("TimeUnit", return_annotation)
-    if name in group1:
-        print(f"Hide the signature of {name!r}")
-        return ('', None)
-    # if name in group2:
-    #     print(f"Modify the signature of {name!r}")
-    #     return ('()', return_annotation)
-    # if name in group4:
-    #     print(f"add a return-annotation to {name!r}")
-    #     return (signature, '~typing.AsyncContextManager[Task]')
-    # if name in group5:
-    #     print(f"Modify the return-annotation of {name!r}")
-    #     return (signature, return_annotation.replace("AsyncIterator", "AsyncContextManager"))
-    return (signature, return_annotation, )
-
-
-def setup(app):
-    app.connect('autodoc-process-signature', modify_signature)
