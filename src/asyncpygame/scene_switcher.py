@@ -87,7 +87,7 @@ class SceneSwitcher:
                 next_scene, transition = (await self._next_scene_request.wait())[0]
                 agen = transition(priority=priority, **common_params)
                 try:
-                    with block_inputs(sdlevent, priority):
+                    with block_inputs(priority, sdlevent):
                         await agen.asend(None)
                         task.cancel()
                         await agen.asend(None)
@@ -165,7 +165,7 @@ class SlideTransition:
         # Naming rules:
         #   xxx1 ... something for the current scene
         #   xxx2 ... something for the next scene
-        frame1 = await capture_current_frame(executor, priority, draw_target)
+        frame1 = await capture_current_frame(draw_target, priority, executor)
         yield
         yield
 

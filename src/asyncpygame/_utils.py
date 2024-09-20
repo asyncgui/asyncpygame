@@ -11,11 +11,11 @@ from ._priority_executor import PriorityExecutor
 from ._sdlevent import SDLEvent, Subscriber
 
 
-async def capture_current_frame(executor: PriorityExecutor, priority, source: Surface) -> Awaitable[Surface]:
+async def capture_current_frame(source: Surface, priority, executor: PriorityExecutor, **unused) -> Awaitable[Surface]:
     '''
     .. code-block::
 
-        surface = await capture_current_frame(executor, priority, source)
+        surface = await capture_current_frame(screen, priority, executor)
     '''
     e = ExclusiveEvent()
     with executor.register(e.fire, priority):
@@ -24,13 +24,13 @@ async def capture_current_frame(executor: PriorityExecutor, priority, source: Su
     return source.copy()
 
 
-def block_inputs(sdlevent: SDLEvent, priority) -> ContextManager[Subscriber]:
+def block_inputs(priority, sdlevent: SDLEvent, **unused) -> ContextManager[Subscriber]:
     '''
     Returns a context manager that blocks input events.
 
     .. code-block::
 
-        with block_inputs(sdlevent, priority):
+        with block_inputs(priority, sdlevent):
             ...
 
     .. warning::
