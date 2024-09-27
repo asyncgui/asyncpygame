@@ -37,6 +37,10 @@ def run(main_func, *, fps=30, auto_quit=True):
             executor()
     except AppQuit:
         pass
+    except ap.ExceptionGroup as group:
+        unignorable_excs = tuple(e for e in group.exceptions if not isinstance(e, AppQuit))
+        if unignorable_excs:
+            raise ap.ExceptionGroup(group.message, unignorable_excs)
     finally:
         main_task.cancel()
         pygame.quit()
