@@ -1,5 +1,5 @@
 __all__ = (
-    'capture_current_frame', 'block_inputs',
+    'capture_current_frame', 'block_input_events',
 )
 
 from typing import Awaitable, ContextManager
@@ -24,13 +24,13 @@ async def capture_current_frame(executor: PriorityExecutor, priority, source: Su
     return source.copy()
 
 
-def block_inputs(sdlevent: SDLEvent, priority) -> ContextManager[Subscriber]:
+def block_input_events(sdlevent: SDLEvent, priority) -> ContextManager[Subscriber]:
     '''
     Returns a context manager that blocks input events.
 
     .. code-block::
 
-        with block_inputs(sdlevent, priority):
+        with block_input_events(sdlevent, priority):
             ...
 
     .. warning::

@@ -8,7 +8,7 @@ def test_lower_priority():
 
     received = []
     sdlevent.subscribe((KEYDOWN, ), received.append, priority=20)
-    with ap.block_inputs(sdlevent, priority=10):
+    with ap.block_input_events(sdlevent, priority=10):
         sdlevent.dispatch(Event(KEYDOWN))
         assert len(received) == 1
     sdlevent.dispatch(Event(KEYDOWN))
@@ -21,7 +21,7 @@ def test_higher_priority():
 
     received = []
     sdlevent.subscribe((KEYDOWN, ), received.append, priority=0)
-    with ap.block_inputs(sdlevent, priority=10):
+    with ap.block_input_events(sdlevent, priority=10):
         sdlevent.dispatch(Event(KEYDOWN))
         assert len(received) == 0
     sdlevent.dispatch(Event(KEYDOWN))
