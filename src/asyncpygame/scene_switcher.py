@@ -10,7 +10,7 @@ from functools import partial
 import asyncgui as ag
 from pygame.math import Vector2
 
-from ._utils import capture_current_frame, block_inputs
+from ._utils import capture_current_frame, block_input_events
 
 
 Transition: TypeAlias = Callable[..., AsyncGenerator[None, None]]
@@ -87,7 +87,7 @@ class SceneSwitcher:
                 next_scene, transition = (await self._next_scene_request.wait())[0]
                 agen = transition(priority=priority, **common_params)
                 try:
-                    with block_inputs(sdlevent, priority):
+                    with block_input_events(sdlevent, priority):
                         await agen.asend(None)
                         task.cancel()
                         await agen.asend(None)
