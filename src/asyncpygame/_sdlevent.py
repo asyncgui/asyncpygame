@@ -45,7 +45,7 @@ class Subscriber:
         sub.callback = another_function
     '''
 
-    event_types: Container = None
+    topics: Container = None
     '''
     The types of :class:`pygame.event.Event` that the subscriber is interested in.
     You can change it by simply assigning to this attribute.
@@ -53,7 +53,7 @@ class Subscriber:
     .. code-block::
 
         sub = sdl_event.subscribe(...)
-        sub.event_types = (FINGERMOTION, FINGERUP, )
+        sub.topics = (FINGERMOTION, FINGERUP, )
     '''
 
     _cancelled: bool = False
@@ -133,7 +133,7 @@ class SDLEvent:
                 if sub._cancelled:
                     continue
                 subs2_append(sub)
-                if event_type in sub.event_types and sub.callback(event):
+                if event_type in sub.topics and sub.callback(event):
                     subs2.extend(sub_iter)
                     return
         finally:
@@ -141,11 +141,11 @@ class SDLEvent:
             self._subs = subs2
             self._subs_2 = subs
 
-    def subscribe(self, event_types, callback, priority=DEFAULT_PRIORITY) -> Subscriber:
+    def subscribe(self, topics, callback, priority=DEFAULT_PRIORITY) -> Subscriber:
         '''
         async型APIの礎となっているコールバック型API。直接触るべきではない。
         '''
-        sub = Subscriber(priority, callback, event_types)
+        sub = Subscriber(priority, callback, topics)
         self._subs_to_be_added.append(sub)
         return sub
 
