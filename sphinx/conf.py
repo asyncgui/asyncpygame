@@ -55,6 +55,7 @@ todo_include_todos = True
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3', None),
     'asyncgui': ('https://asyncgui.github.io/asyncgui/', None),
+    'asyncgui_ext.clock': ('https://asyncgui.github.io/asyncgui-ext-clock/', None),
     'pygame': ('https://pyga.me/docs/', None),
 }
 
