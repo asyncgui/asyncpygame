@@ -1,10 +1,10 @@
 import pygame
 import pygame.font
 from pygame.colordict import THECOLORS as COLORS
-import asyncpygame as ap
+import asyncpygame as apg
 
 
-async def main(*, clock: ap.Clock, **kwargs):
+async def main(*, clock: apg.Clock, **kwargs):
     pygame.init()
     pygame.display.set_caption("Countdown on GUI")
     screen = pygame.display.set_mode((400, 400))
@@ -23,4 +23,4 @@ async def main(*, clock: ap.Clock, **kwargs):
 
 
 if __name__ == "__main__":
-    ap.run(main)
+    apg.run(main)

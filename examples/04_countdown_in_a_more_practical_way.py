@@ -2,10 +2,10 @@ from functools import partial
 import pygame
 import pygame.font
 from pygame.colordict import THECOLORS as COLORS
-import asyncpygame as ap
+import asyncpygame as apg
 
 
-async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, **kwargs):
+async def main(*, clock: apg.Clock, executor: apg.PriorityExecutor, **kwargs):
     pygame.init()
     pygame.display.set_caption("Countdown")
     screen = pygame.display.set_mode((400, 400))
@@ -26,4 +26,4 @@ async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, **kwargs):
 
 
 if __name__ == "__main__":
-    ap.run(main)
+    apg.run(main)

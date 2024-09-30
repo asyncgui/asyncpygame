@@ -1,8 +1,8 @@
 import pygame
-import asyncpygame as ap
+import asyncpygame as apg
 
 
-async def main(*, sdlevent: ap.SDLEvent, **kwargs):
+async def main(*, sdlevent: apg.SDLEvent, **kwargs):
     pygame.init()
     pygame.display.set_caption("Event Handling")
     pygame.display.set_mode((400, 400))
@@ -13,4 +13,4 @@ async def main(*, sdlevent: ap.SDLEvent, **kwargs):
 
 
 if __name__ == "__main__":
-    ap.run(main)
+    apg.run(main)

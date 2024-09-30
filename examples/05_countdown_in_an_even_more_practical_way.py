@@ -2,10 +2,10 @@ from functools import partial
 import pygame
 import pygame.font
 from pygame.colordict import THECOLORS as COLORS
-import asyncpygame as ap
+import asyncpygame as apg
 
 
-async def countdown(*, count_from: int, draw_target: pygame.Surface, clock: ap.Clock, executor: ap.PriorityExecutor, priority, **kwargs):
+async def countdown(*, count_from: int, draw_target: pygame.Surface, clock: apg.Clock, executor: apg.PriorityExecutor, priority, **kwargs):
     center = draw_target.get_rect().center
     font = pygame.font.SysFont(None, 400)
     fgcolor = COLORS["black"]
@@ -17,16 +17,17 @@ async def countdown(*, count_from: int, draw_target: pygame.Surface, clock: ap.C
             await clock.sleep(1000)
 
 
-async def main(*, clock: ap.Clock, executor: ap.PriorityExecutor, **kwargs):
+async def main(**kwargs):
     pygame.init()
     pygame.display.set_caption("Countdown")
     screen = pygame.display.set_mode((400, 400))
 
-    executor.register(partial(screen.fill, COLORS["white"]), priority=0)
-    executor.register(pygame.display.flip, priority=0xFFFFFF00)
+    r = kwargs["executor"].register
+    r(partial(screen.fill, COLORS["white"]), priority=0)
+    r(pygame.display.flip, priority=0xFFFFFF00)
 
-    await countdown(count_from=3, draw_target=screen, clock=clock, executor=executor, priority=0x100)
+    await countdown(count_from=3, draw_target=screen, priority=0x100, **kwargs)
 
 
 if __name__ == "__main__":
-    ap.run(main)
+    apg.run(main)
