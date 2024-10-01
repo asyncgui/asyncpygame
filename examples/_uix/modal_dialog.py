@@ -1,4 +1,4 @@
-__all__ = ('ask_yes_no_question', )
+__all__ = ('show_messagebox', 'ask_yes_no_question', )
 
 from typing import Unpack
 from contextlib import asynccontextmanager
@@ -35,6 +35,45 @@ async def translate_rects_vertically(clock: Clock, rects, movement, duration):
             rect.y = org_y + v
 
 
+async def show_messagebox(
+        message, *, dialog_size: Rect=None, font=None, text_ok='OK',
+        priority, **kwargs: Unpack[CommonParams]) -> bool:
+    '''
+    .. code-block::
+
+        await show_messagebox("Hello World", priority=0xFFFFFA00, **kwargs)
+    '''
+    bgcolor = "grey90"
+    clock = kwargs["clock"]
+    draw_target = kwargs["draw_target"]
+    if font is None:
+        font = SysFont(None, 40)
+
+    with block_input_events(kwargs["sdlevent"], priority):
+        async with darken(priority=priority, **kwargs), asyncgui.open_nursery() as nursery:
+            target_rect = draw_target.get_rect()
+            if dialog_size is None:
+                dialog_size = target_rect.inflate(-100, 0)
+                dialog_size.height = dialog_size.width // 2
+            dialog_dest = dialog_size.move_to(bottom=target_rect.top)
+            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dialog_dest), priority=priority + 1):
+                label = AnchorLayout(
+                    nursery,
+                    font.render(message, True, "black", bgcolor).convert(draw_target),
+                    dialog_dest.scale_by(1.0, 0.7).move_to(top=dialog_dest.top).inflate(-10, -10),
+                    priority=priority + 2, **kwargs)
+                ok_button = RippleButton(
+                    nursery,
+                    font.render(text_ok, True, "white"),
+                    dialog_dest.scale_by(0.5, 0.3).move_to(midbottom=dialog_dest.midbottom).inflate(-20, -20),
+                    priority=priority + 2, **kwargs)
+                rects = (dialog_dest, label.dest, ok_button.dest, )
+                y_movement = target_rect.centery - dialog_dest.centery
+                await translate_rects_vertically(clock, rects, y_movement, duration=200)
+                await ok_button.to_be_clicked()
+                await translate_rects_vertically(clock, rects, -y_movement, duration=200)
+
+
 async def ask_yes_no_question(
         question, *, dialog_size: Rect=None, font=None, text_yes='Yes', text_no='No',
         priority, **kwargs: Unpack[CommonParams]) -> bool:
@@ -44,21 +83,19 @@ async def ask_yes_no_question(
         result = await ask_yes_no_question("Do you like PyGame?", priority=0xFFFFFA00, **kwargs)
     '''
     bgcolor = "grey90"
-    executor = kwargs["executor"]
-    sdlevent = kwargs["sdlevent"]
     clock = kwargs["clock"]
     draw_target = kwargs["draw_target"]
     if font is None:
         font = SysFont(None, 40)
 
-    with block_input_events(sdlevent, priority):
+    with block_input_events(kwargs["sdlevent"], priority):
         async with darken(priority=priority, **kwargs), asyncgui.open_nursery() as nursery:
             target_rect = draw_target.get_rect()
             if dialog_size is None:
                 dialog_size = target_rect.inflate(-100, 0)
                 dialog_size.height = dialog_size.width // 2
             dialog_dest = dialog_size.move_to(bottom=target_rect.top)
-            with executor.register(partial(draw_target.fill, bgcolor, dialog_dest), priority=priority + 1):
+            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dialog_dest), priority=priority + 1):
                 label = AnchorLayout(
                     nursery,
                     font.render(question, True, "black", bgcolor).convert(draw_target),
