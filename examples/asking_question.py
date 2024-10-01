@@ -8,7 +8,7 @@ import asyncpygame as apg
 
 from _uix.touch_indicator import touch_indicator
 from _uix.ripple_button import RippleButton
-from _uix.modal_dialog import ask_yes_no_question
+from _uix.modal_dialog import ask_yes_no_question, show_messagebox
 
 
 async def main(**kwargs: Unpack[apg.CommonParams]):
@@ -33,7 +33,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
         while True:
             await button.to_be_clicked()
             answer = await ask_yes_no_question("Do you like PyGame?", priority=0xFFFFFA00, **kwargs)
-            print("YES" if answer else "NO")
+            await show_messagebox(f"You answered '{'Yes' if answer else 'No'}'.", priority=0xFFFFFA00, **kwargs)
 
 
 if __name__ == "__main__":
