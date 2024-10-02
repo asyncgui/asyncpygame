@@ -43,4 +43,3 @@ def run(main_func, *, fps=30, auto_quit=True):
             raise ap.ExceptionGroup(group.message, unignorable_excs)
     finally:
         main_task.cancel()
-        pygame.quit()
