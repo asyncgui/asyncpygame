@@ -3,7 +3,7 @@
 Let's say you want to do:
 
 1. `print('A')`
-1. wait for 1000ms to elapse
+1. wait for 1000ms
 1. `print('B')`
 1. wait for a mouse button to be pressed
 1. `print('C')`
@@ -20,8 +20,11 @@ async def what_you_want_to_do(*, clock, sdlevent, **kwargs):
     print('C')
 ```
 
-[Youtube](https://youtu.be/kvy0_aVUFLM)
+[Youtube](https://youtu.be/kvy0_aVUFLM)  
+[API Reference](https://asyncgui.github.io/asyncpygame/)
 
+Currently, there are no proper tutorials available.
+Please refer to the examples.
 
 ## Installation
 
