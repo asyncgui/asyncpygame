@@ -1,11 +1,11 @@
 __all__ = (
-    'DEFAULT_PRIORITY', 'run', 'quit', 'Clock', 'SDLEvent', 'PriorityExecutor',
+    'DEFAULT_PRIORITY', 'run', 'quit', 'run_and_record', 'Clock', 'SDLEvent', 'PriorityExecutor',
     'CommonParams', 'capture_current_frame', 'block_input_events',
 )
 
 from asyncgui import *
 from asyncgui_ext.clock import Clock
-from ._runner import run, quit
+from ._runner import run, quit, run_and_record
 from .constants import DEFAULT_PRIORITY
 from ._sdlevent import SDLEvent
 from ._priority_executor import PriorityExecutor
