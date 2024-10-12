@@ -9,7 +9,7 @@ def executor():
 
 def test_basis(executor):
     values = []
-    req = executor.register(lambda: values.append('A'))
+    req = executor.register(lambda: values.append('A'), priority=0)
     assert values == []
     executor()
     assert values == ['A', ]
@@ -22,8 +22,8 @@ def test_basis(executor):
 
 def test_same_priority(executor):
     values = []
-    req = executor.register(lambda: values.append('A'))
-    executor.register(lambda: values.append('B'))
+    req = executor.register(lambda: values.append('A'), priority=0)
+    executor.register(lambda: values.append('B'), priority=0)
     assert values == []
     executor()
     assert sorted(values) == ['A', 'B', ]

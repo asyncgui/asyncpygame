@@ -8,8 +8,6 @@ from contextlib import asynccontextmanager
 from pygame.event import Event
 from asyncgui import _current_task, _sleep_forever, current_task
 
-from .constants import DEFAULT_PRIORITY
-
 
 def _callback(filter, consume, task_step, event: Event):
     if filter(event):
@@ -141,7 +139,7 @@ class SDLEvent:
             self._subs = subs2
             self._subs_2 = subs
 
-    def subscribe(self, topics, callback, priority=DEFAULT_PRIORITY) -> Subscriber:
+    def subscribe(self, topics, callback, priority) -> Subscriber:
         '''
         async型APIの礎となっているコールバック型API。直接触るべきではない。
         '''
@@ -150,7 +148,7 @@ class SDLEvent:
         return sub
 
     @types.coroutine
-    def wait(self, *event_types, filter=_accept_any, priority=DEFAULT_PRIORITY, consume=False) -> Awaitable[Event]:
+    def wait(self, *event_types, filter=_accept_any, priority, consume=False) -> Awaitable[Event]:
         '''
         Waits for any of the specified types of events to occur.
         '''
@@ -162,7 +160,7 @@ class SDLEvent:
             sub.cancel()
 
     @asynccontextmanager
-    async def wait_freq(self, *event_types, filter=_accept_any, priority=DEFAULT_PRIORITY, consume=False):
+    async def wait_freq(self, *event_types, filter=_accept_any, priority, consume=False):
         '''
         ``MOUSEMOTION`` や ``FINGERMOTION`` などの頻りに起こりうるイベントを効率良く捌けるかもしれない機能。
         以下のようなコードは

@@ -22,7 +22,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     r(pygame.display.flip, priority=0xFFFFFF00)
     del r
 
-    mouse_button_down = partial(kwargs["sdlevent"].wait, pygame.MOUSEBUTTONDOWN)
+    mouse_button_down = partial(kwargs["sdlevent"].wait, pygame.MOUSEBUTTONDOWN, priority=0x100)
     move_sprite = partial(kwargs["clock"].anim_attrs, img_rect, duration=1000)
     wait_any = apg.wait_any
 

@@ -1,5 +1,4 @@
 from heapq import merge as heapq_merge
-from .constants import DEFAULT_PRIORITY
 
 
 class ExecutionRequest:
@@ -95,7 +94,7 @@ class PriorityExecutor:
             self._reqs = reqs2
             self._reqs_2 = reqs
 
-    def register(self, func, priority=DEFAULT_PRIORITY) -> ExecutionRequest:
+    def register(self, func, priority) -> ExecutionRequest:
         req = ExecutionRequest(priority, func)
         self._reqs_to_be_added.append(req)
         return req
