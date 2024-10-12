@@ -10,7 +10,7 @@ def se():
 
 def test_subscribe(se):
     received = []
-    sub = se.subscribe((1, 2), received.append)
+    sub = se.subscribe((1, 2), received.append, priority=0)
     se.dispatch(E(1))
     assert len(received) == 1
     se.dispatch(E(0))
@@ -30,10 +30,10 @@ def test_two_subscribers_with_the_same_priority(se):
     def store_value(e):
         value_list.append(e.value)
 
-    sub = se.subscribe((1, ), store_value)
+    sub = se.subscribe((1, ), store_value, priority=0)
     se.dispatch(E(1, value='A'))
     assert value_list == ['A', ]
-    se.subscribe((1, ), store_value)
+    se.subscribe((1, ), store_value, priority=0)
     se.dispatch(E(1, value='B'))
     assert value_list == ['A', 'B', 'B',]
     sub.cancel()
@@ -77,7 +77,7 @@ def test_stop_dispatching(se):
 def test_wait(se):
     from asyncgui import start
 
-    task = start(se.wait(1, 2))
+    task = start(se.wait(1, 2, priority=0))
     se.dispatch(E(0))
     assert not task.finished
     se.dispatch(E(1))
@@ -87,7 +87,7 @@ def test_wait(se):
 def test_wait_with_filter(se):
     from asyncgui import start
 
-    task = start(se.wait(1, 2, filter=lambda e: e.value == 'A'))
+    task = start(se.wait(1, 2, filter=lambda e: e.value == 'A', priority=0))
     se.dispatch(E(0, value='B'))
     assert not task.finished
     se.dispatch(E(0, value='A'))
@@ -115,7 +115,7 @@ def test_wait_freq(se):
     from asyncgui import start
 
     async def async_fn():
-        async with se.wait_freq(1, 2) as event:
+        async with se.wait_freq(1, 2, priority=0) as event:
             return await event()
 
     task = start(async_fn())
@@ -129,7 +129,7 @@ def test_wait_freq_with_filter(se):
     from asyncgui import start
 
     async def async_fn():
-        async with se.wait_freq(1, 2, filter=lambda e: e.value == 'A') as event:
+        async with se.wait_freq(1, 2, filter=lambda e: e.value == 'A', priority=0) as event:
             return await event()
 
     task = start(async_fn())
@@ -168,7 +168,7 @@ def test_wait_freq_mixed_with_another_type_of_awaitable(se):
     from asyncgui import start, Event
 
     async def async_fn():
-        async with se.wait_freq(1, 2) as event:
+        async with se.wait_freq(1, 2, priority=0) as event:
             await event()
             await ae.wait()
             await event()
