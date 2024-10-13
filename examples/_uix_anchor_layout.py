@@ -1,23 +1,23 @@
+from typing import Unpack
 from functools import partial
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import asyncpygame as apg
 
 from _uix.anchor_layout import AnchorLayout
 
 
-async def main(**kwargs):
+async def main(**kwargs: Unpack[apg.CommonParams]):
     pygame.init()
     pygame.display.set_caption("Anchor Layout")
-    screen = pygame.display.set_mode((800, 600))
+    kwargs["draw_target"] = screen = pygame.display.set_mode((800, 600))
     font = pygame.font.SysFont(None, 30)
 
     r = kwargs["executor"].register
-    r(partial(screen.fill, COLORS["black"]), priority=0)
+    r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
-    kwargs["draw_target"] = screen
 
     async with apg.open_nursery() as nursery:
         dest = screen.get_rect().inflate(-20, -20)

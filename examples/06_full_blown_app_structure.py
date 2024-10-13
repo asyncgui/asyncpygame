@@ -3,7 +3,7 @@ from functools import partial
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import pygame.constants as C
 
 import asyncpygame as apg
@@ -19,7 +19,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     pygame.display.set_caption("<Your App Title>")
     kwargs["draw_target"] = screen = pygame.display.set_mode((800, 600))
 
-    bgcolor = COLORS["black"]
+    bgcolor = THECOLORS["black"]
     r = kwargs["executor"].register
     r(partial(screen.fill, bgcolor), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)

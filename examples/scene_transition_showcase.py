@@ -4,7 +4,7 @@ import itertools
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import asyncpygame as apg
 from asyncpygame.scene_switcher import SceneSwitcher, FadeTransition, SlideTransition, no_transition
 
@@ -15,7 +15,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     kwargs["draw_target"] = screen = pygame.display.set_mode((800, 600))
 
     r = kwargs["executor"].register
-    r(partial(screen.fill, COLORS["black"]), priority=0)
+    r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
     userdata = {
         'font': pygame.font.SysFont(None, 50),
@@ -31,7 +31,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     await SceneSwitcher().run(show_transition, priority=0xFFFFFD00, userdata=userdata, **kwargs)
 
 
-async def show_transition(*, scene_switcher, userdata, executor, sdlevent, draw_target, **unused):
+async def show_transition(*, scene_switcher, userdata, executor, sdlevent, draw_target, **__):
     font = userdata['font']
     text, transition = next(userdata['transitions'])
     img = font.render(text, True, "white").convert_alpha()

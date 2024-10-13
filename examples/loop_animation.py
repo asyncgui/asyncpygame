@@ -3,7 +3,7 @@ from functools import partial
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import asyncpygame as apg
 
 
@@ -13,12 +13,12 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
 
     screen = pygame.display.set_mode((1280, 720))
     font = pygame.font.SysFont(None, 200)
-    img = font.render("(^.^)", True, COLORS["white"]).convert_alpha()
+    img = font.render("(^.^)", True, THECOLORS["white"]).convert_alpha()
     img_rect = img.get_rect()
     screen_rect = screen.get_rect()
 
     r = kwargs["executor"].register
-    r(partial(screen.fill, COLORS["black"]), priority=0)
+    r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(partial(screen.blit, img, img_rect), priority=0x100)
     r(pygame.display.flip, priority=0xFFFFFF00)
     del r

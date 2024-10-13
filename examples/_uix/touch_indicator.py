@@ -22,13 +22,13 @@ class Ring:
     _draw = partial(_draw, pygame.draw.circle)
 
 
-async def touch_indicator(*, color="black", radius=60, line_width=4, **kwargs: Unpack[apg.CommonParams]):
+async def touch_indicator(*, color="white", radius=60, line_width=4, priority, **kwargs: Unpack[apg.CommonParams]):
     color = Color(color)
     draw_target = kwargs["draw_target"]
     async with (
         apg.open_nursery() as nursery,
         kwargs["sdlevent"].wait_freq(
-            C.MOUSEBUTTONDOWN, C.FINGERDOWN, priority=kwargs["priority"],
+            C.MOUSEBUTTONDOWN, C.FINGERDOWN, priority=priority,
             filter=lambda e: not getattr(e, 'touch', False)
         ) as touch_down,
     ):
@@ -38,10 +38,10 @@ async def touch_indicator(*, color="black", radius=60, line_width=4, **kwargs: U
                 f = draw_ring_under_mouse_cursor
             else:
                 f = draw_ring_under_finger
-            nursery.start(f(e_down, ring=Ring(draw_target, color, e_down.pos, radius, line_width), **kwargs))
+            nursery.start(f(e_down, priority=priority, ring=Ring(draw_target, color, e_down.pos, radius, line_width), **kwargs))
 
 
-async def draw_ring_under_mouse_cursor(e_down: Event, *, priority, executor, sdlevent, ring, **unsued):
+async def draw_ring_under_mouse_cursor(e_down: Event, *, priority, executor, sdlevent, ring, **__):
     with executor.register(ring.draw, priority):
         async with (
             apg.move_on_when(sdlevent.wait(C.MOUSEBUTTONUP, filter=lambda e: e.button == e_down.button, priority=priority)),
@@ -52,7 +52,7 @@ async def draw_ring_under_mouse_cursor(e_down: Event, *, priority, executor, sdl
                 ring.pos = e.pos
 
 
-async def draw_ring_under_finger(e_down: Event, *, priority, executor, sdlevent, ring, **unused):
+async def draw_ring_under_finger(e_down: Event, *, priority, executor, sdlevent, ring, **__):
     with executor.register(ring.draw, priority):
         async with (
             apg.move_on_when(sdlevent.wait(C.FINGERUP, filter=lambda e: e.finger_id == e_down.finger_id, priority=priority)),

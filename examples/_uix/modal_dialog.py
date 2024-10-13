@@ -14,13 +14,13 @@ from _uix.anchor_layout import AnchorLayout
 
 
 @asynccontextmanager
-async def darken(**kwargs: Unpack[CommonParams]):
+async def darken(*, priority, **kwargs: Unpack[CommonParams]):
     interpolate = kwargs["clock"].interpolate_scalar
     draw_target = kwargs["draw_target"]
     overlay_surface = draw_target.copy()
     overlay_surface.fill("black")
     set_alpha = overlay_surface.set_alpha
-    with kwargs["executor"].register(partial(draw_target.blit, overlay_surface), kwargs["priority"]):
+    with kwargs["executor"].register(partial(draw_target.blit, overlay_surface), priority):
         async for v in interpolate(0, 180, duration=200):
             set_alpha(v)
         yield

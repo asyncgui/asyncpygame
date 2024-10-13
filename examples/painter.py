@@ -9,14 +9,14 @@ from random import choice
 
 import pygame
 from pygame import Event
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import pygame.constants as C
 import asyncpygame as apg
 from _uix.touch_indicator import touch_indicator
 
 
 async def painter(*, priority, **kwargs: Unpack[apg.CommonParams]):
-    colors = tuple(COLORS.values())
+    colors = tuple(THECOLORS.values())
 
     button2command = {
         1: draw_rect,
@@ -53,7 +53,7 @@ async def draw_ellipse(e_down: Event, *, draw_target, color, executor, sdlevent,
     ox, oy = e_down.pos
     rect = pygame.Rect(ox, oy, 0, 0)
     executor.register(partial(pygame.draw.ellipse, draw_target, color, rect, line_width), priority)
-    bbox_req = executor.register(partial(pygame.draw.rect, draw_target, COLORS["black"], rect, 1), priority)
+    bbox_req = executor.register(partial(pygame.draw.rect, draw_target, THECOLORS["black"], rect, 1), priority)
     async with (
         apg.move_on_when(sdlevent.wait(C.MOUSEBUTTONUP, filter=lambda e: e.button == e_down.button, priority=priority)),
         sdlevent.wait_freq(C.MOUSEMOTION, priority=priority) as mouse_motion,
@@ -73,7 +73,7 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     kwargs["draw_target"] = screen = pygame.display.set_mode((800, 600))
 
     r = kwargs["executor"].register
-    r(partial(screen.fill, COLORS["white"]), priority=0)
+    r(partial(screen.fill, THECOLORS["white"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
 
     async with apg.open_nursery() as nursery:
