@@ -3,7 +3,7 @@ from functools import partial
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 import asyncpygame as apg
 
 from _uix.touch_indicator import touch_indicator
@@ -19,14 +19,14 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     button_font = pygame.font.SysFont(None, 50)
 
     r = kwargs["executor"].register
-    r(partial(screen.fill, COLORS["black"]), priority=0)
+    r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
 
     async with apg.open_nursery() as nursery:
         nursery.start(touch_indicator(color="darkgreen", priority=0xFFFFFE00, **kwargs))
         button = RippleButton(
             nursery,
-            button_image := button_font.render("open dialog", True, COLORS["white"]).convert_alpha(),
+            button_image := button_font.render("open dialog", True, THECOLORS["white"]).convert_alpha(),
             button_image.get_rect(centerx=screen_rect.centerx).inflate(40, 40).move_to(bottom=screen_rect.bottom - 20),
             priority=0x100, **kwargs)
 

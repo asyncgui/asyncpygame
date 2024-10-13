@@ -3,7 +3,7 @@ from functools import partial
 
 import pygame
 import pygame.font
-from pygame.colordict import THECOLORS as COLORS
+from pygame.colordict import THECOLORS
 from pygame import Rect
 import asyncpygame as apg
 import requests
@@ -18,12 +18,13 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     pygame.display.set_caption("Network I/O")
     kwargs["draw_target"] = screen = pygame.display.set_mode((600, 800))
     font = pygame.font.SysFont(None, 50)
-    bgcolor = COLORS["black"]
-    fgcolor = COLORS["white"]
+    bgcolor = THECOLORS["black"]
+    fgcolor = THECOLORS["white"]
 
     r = kwargs["executor"].register
     r(partial(screen.fill, bgcolor), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
+    del r
 
     async with apg.open_nursery() as nursery:
         nursery.start(touch_indicator(color=fgcolor, priority=0xFFFFFE00, **kwargs))
