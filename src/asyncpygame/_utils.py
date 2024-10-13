@@ -29,7 +29,6 @@ class CommonParams(TypedDict, total=False):
     clock: Clock
     pygame_clock: pygame.time.Clock
     draw_target: Surface
-    priority: int
 
 
 async def capture_current_frame(executor: PriorityExecutor, priority, source: Surface) -> Awaitable[Surface]:
