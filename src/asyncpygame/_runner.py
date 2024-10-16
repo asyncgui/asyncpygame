@@ -61,8 +61,8 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.m
     screen = pygame.display.get_surface()
 
     if auto_quit:
-        sdlevent.subscribe((pygame.QUIT, ), quit)
-        sdlevent.subscribe((pygame.KEYDOWN, ), lambda e, K=pygame.K_ESCAPE: e.key == K and quit())
+        sdlevent.subscribe((pygame.QUIT, ), quit, priority=0)
+        sdlevent.subscribe((pygame.KEYDOWN, ), lambda e, K=pygame.K_ESCAPE: e.key == K and quit(), priority=0)
 
     ffmpeg_cmd = (
         'ffmpeg',
@@ -77,7 +77,7 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.m
         '-vcodec', codec,
         output_file,
     )
-    process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE)
+    process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE, bufsize=0)
 
     # LOAD_FAST
     pygame_event_get = pygame.event.get
