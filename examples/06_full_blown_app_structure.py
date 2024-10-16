@@ -9,8 +9,8 @@ import pygame.constants as C
 import asyncpygame as apg
 from asyncpygame.scene_switcher import SceneSwitcher, FadeTransition
 from _uix.touch_indicator import touch_indicator
-from _uix.anchor_layout import AnchorLayout
-from _uix.ripple_button import RippleButton
+from _uix.anchor_layout import anchor_layout
+from _uix.ripple_button import ripple_button
 from _uix.modal_dialog import ask_yes_no_question
 
 
@@ -47,17 +47,20 @@ async def title_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPa
     target_rect = draw_target.get_rect()
     font = userdata['font']
     async with apg.open_nursery() as nursery:
-        AnchorLayout(
-            nursery,
+        e_start = apg.Event()
+        s = nursery.start
+        s(anchor_layout(
             font.render("<Your App Title>", True, "white", userdata["bgcolor"]).convert(draw_target),
             target_rect.scale_by(1.0, 0.5).move_to(y=target_rect.y),
-            priority=0x100, **kwargs)
-        start_button = RippleButton(
-            nursery,
+            priority=0x100,
+            **kwargs))
+        s(ripple_button(
             button_image := font.render("Start", True, "white").convert_alpha(),
             button_image.get_rect(center=target_rect.scale_by(1.0, 0.5).move_to(bottom=target_rect.bottom).center).inflate(80, 80),
-            priority=0x100, **kwargs)
-        await start_button.to_be_clicked()
+            on_click=e_start.fire,
+            priority=0x100,
+            **kwargs))
+        await e_start.wait()
         scene_switcher.switch_to(menu_scene, FadeTransition())
         await apg.sleep_forever()
 
@@ -67,20 +70,20 @@ async def menu_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPar
     target_rect = draw_target.get_rect()
     font = userdata['font']
     async with apg.open_nursery() as nursery:
-        play_button = RippleButton(
-            nursery,
+        e_play = apg.Event()
+        e_back = apg.Event()
+        s = nursery.start
+        s(ripple_button(
             button_image := font.render("Play Game", True, "white").convert_alpha(),
             button_image.get_rect(center=target_rect.scale_by(1.0, 0.5).move_to(y=target_rect.y).center).inflate(80, 80),
-            priority=0x100, **kwargs)
-        back_button = RippleButton(
-            nursery,
+            on_click=e_play.fire,
+            priority=0x100, **kwargs))
+        s(ripple_button(
             button_image := font.render("Back to Title", True, "white").convert_alpha(),
             button_image.get_rect(center=target_rect.scale_by(1.0, 0.5).move_to(bottom=target_rect.bottom).center).inflate(80, 80),
-            priority=0x100, **kwargs)
-        tasks = await apg.wait_any(
-            play_button.to_be_clicked(),
-            back_button.to_be_clicked(),
-        )
+            on_click=e_back.fire,
+            priority=0x100, **kwargs))
+        tasks = await apg.wait_any(e_play.wait(), e_back.wait())
         next_scene = title_scene if tasks[1].finished else game_scene
         scene_switcher.switch_to(next_scene, FadeTransition())
         await apg.sleep_forever()

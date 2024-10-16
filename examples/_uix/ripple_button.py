@@ -1,14 +1,13 @@
-__all__ = ('RippleButton', )
+__all__ = ('ripple_button', )
 
 from typing import Self, ContextManager
 from contextlib import contextmanager
 from functools import partial
-from collections.abc import Awaitable
 import math
 
-from asyncgui import Nursery, Event, run_as_main
+import asyncgui
 from pygame import Surface, Rect, Color
-from pygame import constants as C
+import pygame.constants as C
 import pygame.draw
 
 
@@ -20,11 +19,11 @@ def out_quad(p):
 
 
 @contextmanager
-def clip(surface, rect):
+def tmp_clip(surface, rect):
     '''
     .. code-block::
 
-        with clip(surface, rect):
+        with tmp_clip(surface, rect):
             ...
     '''
     prev = surface.get_clip()
@@ -73,108 +72,80 @@ def block_touch_down_events(sdlevent, priority, *, filter=lambda e: True) -> Con
 class RippleEffect:
     __slots__ = ('radius', 'draw', )
 
-    def __init__(self, pos, radius, color):
-        self.radius = radius
-        self.draw = partial(self._draw, color, pos, self)
+    def __init__(self):
+        self.draw = do_nothing
 
-    def _draw(pygame_draw_circle, color, pos, self: Self, draw_target):
+    def enable(self, draw_target, pos, radius, color):
+        self.radius = radius
+        self.draw = partial(self._draw, draw_target, pos, color, self)
+
+    def disable(self):
+        self.draw = do_nothing
+
+    def _draw(pygame_draw_circle, draw_target, pos, color, self: Self):
         pygame_draw_circle(draw_target, color, pos, self.radius)
 
     _draw = partial(_draw, pygame.draw.circle)
 
 
-class RippleButton:
+def do_nothing(*args, **kwargs):
+    pass
+
+
+async def ripple_button(
+        image: Surface, dest: Rect, priority, *, bgcolor="fuchsia", ripple_color=(80, 80, 80, 0),
+        on_click=do_nothing, executor, sdlevent, clock, draw_target, **__):
     '''
     .. code-block::
 
         async with asyncpygame.open_nursery() as nursery:
             image = Surface(...)
             dest = Rect(...)
-            button = RippleButton(nursery, image, dest, **common_params)
+            click_event = asyncpygame.Event()
+
+            nursery.start(ripple_button(image, dest, priority=..., on_click=click_event.fire, **common_params))
 
             # Waits for the button to be clicked.
-            await button.to_be_clicked()
+            args, kwargs = await click_event.wait()
 
-            # You can change its image anytime.
-            button.image = another_image
-
-            # You can move or resize the button by updating the ``dest``.
-            dest.width = ...
-            dest.right = ...
-
-            # but you cannot assign another Rect instance to the button.
-            button.dest = another_rect  # NOT ALLOWED
-
+            # The events that caused the button to be clicked. These are either a pair of FINGERDOWN
+            # and FINGERUP events or a pair of MOUSEBUTTONDOWN and MOUSEBUTTONUP events.
+            e_down, e_up = args
     '''
-    def __init__(self, owner: Nursery, image: Surface, dest: Rect,
-                 *, bgcolor="fuchsia", ripple_color=(80, 80, 80, 0), **common_params):
-        '''
-        :param owner: RippleButton cannot outlive its owner. When the owner is closed, the button is destroyed.
-        '''
-        self._click_event = Event()
-        self._draw_ripple_effect = None
-        self._dest = dest
-        self.image = image
-        self._main_task = owner.start(self._main(bgcolor, ripple_color, **common_params), daemon=True)
+    bgcolor = Color(bgcolor)
+    ripple_color = Color(ripple_color) + Color(bgcolor)
+    collidepoint = dest.collidepoint
+    effect = RippleEffect()
 
-    def kill(self):
-        self._main_task.cancel()
+    touch_down = partial(
+        sdlevent.wait, C.MOUSEBUTTONDOWN, C.FINGERDOWN, priority=priority + 1, consume=True,
+        filter=lambda e: (not getattr(e, 'touch', False)) and collidepoint(e.pos))
+    mouse_button_up = partial(
+        sdlevent.wait, C.MOUSEBUTTONUP, priority=priority + 1, consume=True,
+        filter=lambda e: e.button == e_down.button)
+    finger_up = partial(
+        sdlevent.wait, C.FINGERUP, priority=priority + 1, consume=True,
+        filter=lambda e: e.finger_id == e_down.finger_id)
 
-    @property
-    def dest(self) -> Rect:
-        return self._dest
+    with (
+        executor.register(partial(_draw, tmp_clip, image, image.get_rect(), bgcolor, draw_target, dest, effect), priority),
+        block_touch_down_events(sdlevent, priority, filter=lambda e: collidepoint(e.pos)),
+    ):
+        while True:
+            e_down = await touch_down()
+            effect.enable(draw_target, e_down.pos, 0, ripple_color)
+            touch_up = mouse_button_up if e_down.type == C.MOUSEBUTTONDOWN else finger_up
+            async with asyncgui.run_as_main(touch_up()) as touch_up_tracker:
+                await clock.anim_attrs(effect, radius=calc_minimum_enclosing_circle_radius(e_down.pos, dest), duration=600, transition=out_quad)
+            e_up = touch_up_tracker.result
+            if collidepoint(e_up.pos):
+                on_click(e_down, e_up)
+            effect.disable()
 
-    async def to_be_clicked(self) -> Awaitable[tuple[Event, Event]]:
-        '''
-        Waits for the button to be clicked.
 
-        .. code-block::
-
-            e_down, e_up = await button.to_be_clicked()
-
-        The ``e_down`` and ``e_up`` above are :class:`pygame.event.Event` instances that caused the click, and
-        they are either a pair of ``MOUSEBUTTONDOWN`` and ``MOUSEBUTTONUP`` or a pair of ``FINGERDOWN`` and ``FINGERUP``.
-        '''
-        return (await self._click_event.wait())[0]
-
-    async def _main(self, bgcolor, ripple_color, *, priority, draw_target, executor, clock, sdlevent, **unused):
-        bgcolor = Color(bgcolor)
-        ripple_color = Color(ripple_color) + Color(bgcolor)
-        dest = self._dest
-        click_event = self._click_event
-
-        touch_down = partial(
-            sdlevent.wait, C.MOUSEBUTTONDOWN, C.FINGERDOWN, priority=priority + 1, consume=True,
-            filter=lambda e, getattr=getattr, dest=dest: (not getattr(e, 'touch', False)) and dest.collidepoint(e.pos))
-        mouse_button_up = partial(
-            sdlevent.wait, C.MOUSEBUTTONUP, priority=priority + 1, consume=True,
-            filter=lambda e: e.button == e_down.button)
-        finger_up = partial(
-            sdlevent.wait, C.FINGERUP, priority=priority + 1, consume=True,
-            filter=lambda e: e.finger_id == e_down.finger_id)
-
-        with (
-            executor.register(partial(self._draw, bgcolor, draw_target, dest, self), priority=priority),
-            block_touch_down_events(sdlevent, priority, filter=lambda e, dest=dest: dest.collidepoint(e.pos)),
-        ):
-            while True:
-                e_down = await touch_down()
-                effect = RippleEffect(e_down.pos, 0, ripple_color)
-                self._draw_ripple_effect = effect.draw
-                touch_up = mouse_button_up if e_down.type == C.MOUSEBUTTONDOWN else finger_up
-                async with run_as_main(touch_up()) as touch_up_tracker:
-                    await clock.anim_attrs(effect, radius=calc_minimum_enclosing_circle_radius(e_down.pos, dest), duration=600, transition=out_quad)
-                e_up = touch_up_tracker.result
-                if dest.collidepoint(e_up.pos):
-                    click_event.fire(e_down, e_up)
-                self._draw_ripple_effect = None
-
-    def _draw(clip, bgcolor, draw_target, dest, self: Self):
-        image = self.image
-        with clip(draw_target, dest):
-            draw_target.fill(bgcolor)
-            if (draw := self._draw_ripple_effect) is not None:
-                draw(draw_target)
-            draw_target.blit(image, image.get_rect(center=dest.center))
-
-    _draw = partial(_draw, clip)
+def _draw(tmp_clip, image, image_rect, bgcolor, draw_target, dest, effect):
+    with tmp_clip(draw_target, dest):
+        draw_target.fill(bgcolor)
+        effect.draw()
+        image_rect.center = dest.center
+        draw_target.blit(image, image_rect)

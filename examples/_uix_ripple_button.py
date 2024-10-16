@@ -7,7 +7,7 @@ from pygame.colordict import THECOLORS
 from pygame import Rect
 import asyncpygame as apg
 
-from _uix.ripple_button import RippleButton
+from _uix.ripple_button import ripple_button
 
 
 async def main(**kwargs: Unpack[apg.CommonParams]):
@@ -20,10 +20,20 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
 
-    async with apg.open_nursery() as nursery:
-        RippleButton(nursery, font.render("PyGame", True, "white"), Rect(100, 100, 300, 200), priority=0x100, **kwargs)
-        RippleButton(nursery, font.render("Python", True, "white"), Rect(280, 240, 300, 200), priority=0x200, bgcolor="darkgreen", **kwargs)
-        await apg.sleep_forever()
+    await apg.wait_all(
+        ripple_button(
+            font.render("PyGame", True, "white"),
+            Rect(100, 100, 300, 200),
+            on_click=lambda *_: print("PyGame"),
+            priority=0x100, **kwargs),
+        ripple_button(
+            font.render("Python", True, "white"),
+            Rect(280, 240, 300, 200),
+            on_click=lambda *_: print("Python"),
+            bgcolor="darkgreen",
+            priority=0x200,
+            **kwargs),
+    )
 
 
 if __name__ == "__main__":

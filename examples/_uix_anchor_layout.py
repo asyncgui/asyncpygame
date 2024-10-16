@@ -6,7 +6,7 @@ import pygame.font
 from pygame.colordict import THECOLORS
 import asyncpygame as apg
 
-from _uix.anchor_layout import AnchorLayout
+from _uix.anchor_layout import anchor_layout
 
 
 async def main(**kwargs: Unpack[apg.CommonParams]):
@@ -19,13 +19,11 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     r(partial(screen.fill, THECOLORS["black"]), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
 
-    async with apg.open_nursery() as nursery:
-        dest = screen.get_rect().inflate(-20, -20)
-        for anchor in "topleft midtop topright midleft center midright bottomleft midbottom bottomright".split():
-            AnchorLayout(
-                nursery, font.render(anchor, True, "white"), dest,
-                anchor_src=anchor, anchor_dest=anchor, priority=0x100, **kwargs)
-        await apg.sleep_forever()
+    dest = screen.get_rect().inflate(-20, -20)
+    await apg.wait_all(*(
+        anchor_layout(font.render(anchor, True, "white"), dest, priority=0x100, anchor_image=anchor, anchor_dest=anchor, **kwargs)
+        for anchor in "topleft midtop topright midleft center midright bottomleft midbottom bottomright".split()
+    ))
 
 
 if __name__ == "__main__":
