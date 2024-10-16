@@ -23,7 +23,7 @@ class Arc:
     _draw = partial(_draw, pygame.draw.arc)
 
 
-async def progress_spinner(dest: Rect, *, color="white", line_width=20, min_arc_angle=0.3, speed=1.0, priority, **kwargs):
+async def progress_spinner(dest: Rect, priority, *, color="white", line_width=20, min_arc_angle=0.3, speed=1.0, **kwargs):
     R1 = 0.4
     R2 = math.tau - min_arc_angle * 2
     next_start = itertools.accumulate(itertools.cycle((R1, R1, R1 + R2, R1, )), initial=0).__next__
