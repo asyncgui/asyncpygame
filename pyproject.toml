@@ -41,6 +41,9 @@ furo = "^2023.9.10"
 [tool.poetry.group.invest.dependencies]
 matplotlib = "^3.9.2"
 
+[tool.poetry.group.recording.dependencies]
+numpy = "^2.1.2"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
