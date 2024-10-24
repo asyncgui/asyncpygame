@@ -1,13 +1,20 @@
+# Image: いらすとや (https://www.irasutoya.com/)
+# Sound Effect : 魔王魂 (https://maou.audio/)
+
 from typing import Unpack
 from functools import partial
+from contextlib import closing
 
 import io
 from os import PathLike
 from pathlib import Path
 import sqlite3
 
+import requests
 from PIL import Image
 import pygame
+from pygame.surface import Surface
+from pygame.mixer import Sound
 import pygame.font
 from pygame.colordict import THECOLORS
 import pygame.constants as C
@@ -21,15 +28,26 @@ from _uix.modal_dialog import ask_yes_no_question, message_with_spinner
 
 
 def download_images() -> dict[str, bytes]:
-    IMAGE_URLS = (
-        ('neutral', 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgh1PA4Bjg2mGnrFcuufNP1WP2kPRqXMRJQSz-fHxBxRYSGjwZQmbkMEe495vP_23LwafvGR2her8vQhM836BMYvJvKCJVkH9NvHTJ5gdoyAz5bFuQIW7SUDX7gTDJC7qIsqyE9vhuU9Wg/s400/figure_standing.png'),
-        ('square-off', 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5w726e-ADC9DDJdytCRtdPAHogCk3CLTNF-2N3RglZbTgf_Ad1-2N4rQngxYE8IeDlz0E-fhIJOsOGoisP-O1J66KVTFFs9DJ6b7Vd4YyXGkPWNFpmNn0Kl7IkiPhZcnomsfrnDYur4k/s400/figure_fighting_pose.png'),
-        ('attack', 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiuUsvvOwAK4_FlBL5itKyfcgQhzpOhsLZCUFHWbgZZVUl6-Km5hwFIiF8fKCJ2zSdQD5sJpqsBIWEOqThdmc6RUb1FHCtxV7AwyRFX4keVgnm0AN6I-6iDI_yrbWYHLsi2qUUTFLMVySI/s400/figure_fighting_punch.png'),
-        ('clap', 'https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiYu-t8WjYxwde_VFWPsxSSg6ux32QZtPmP6BFlqrlcZmjiP0bCMO_uwcLwliT9YKSY-Pdk7YLWn-d1tEAeJbvfXAchJ-5vl0tYeWa5cFDSbQIGZ0t0dpH8DQPZ000CbHgJkdzxwYKpnf7K/s450/figure_hakusyu.png'),
+    URLS = (
+        ("neutral", r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEgh1PA4Bjg2mGnrFcuufNP1WP2kPRqXMRJQSz-fHxBxRYSGjwZQmbkMEe495vP_23LwafvGR2her8vQhM836BMYvJvKCJVkH9NvHTJ5gdoyAz5bFuQIW7SUDX7gTDJC7qIsqyE9vhuU9Wg/s400/figure_standing.png"),
+        ("square-off", r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEh5w726e-ADC9DDJdytCRtdPAHogCk3CLTNF-2N3RglZbTgf_Ad1-2N4rQngxYE8IeDlz0E-fhIJOsOGoisP-O1J66KVTFFs9DJ6b7Vd4YyXGkPWNFpmNn0Kl7IkiPhZcnomsfrnDYur4k/s400/figure_fighting_pose.png"),
+        ("attack", r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiuUsvvOwAK4_FlBL5itKyfcgQhzpOhsLZCUFHWbgZZVUl6-Km5hwFIiF8fKCJ2zSdQD5sJpqsBIWEOqThdmc6RUb1FHCtxV7AwyRFX4keVgnm0AN6I-6iDI_yrbWYHLsi2qUUTFLMVySI/s400/figure_fighting_punch.png"),
+        ("clap", r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiYu-t8WjYxwde_VFWPsxSSg6ux32QZtPmP6BFlqrlcZmjiP0bCMO_uwcLwliT9YKSY-Pdk7YLWn-d1tEAeJbvfXAchJ-5vl0tYeWa5cFDSbQIGZ0t0dpH8DQPZ000CbHgJkdzxwYKpnf7K/s450/figure_hakusyu.png"),
+        ("cry", r"https://blogger.googleusercontent.com/img/b/R29vZ2xl/AVvXsEiIcTcD0UZV4m-GVEajDYW5BY68cVV7HiXv6F3z72CaiBPUosr5Z_IJbxRbLzbbWpxtKe_QY_AF1QuWVql6Q2VuxauMSll5TLHSDlYtlRfxYcXqLHALY2PD-0pcAkmKPbqRvbLnx6RXLrA/s400/figure_crying.png"),
     )
-    import requests
     with requests.Session() as session:
-        return {name: session.get(url).content for name, url in IMAGE_URLS}
+        session.headers.update({"Referer": "https://www.irasutoya.com/"})
+        return {name: session.get(url).content for name, url in URLS}
+
+
+def download_sounds() -> dict[str, bytes]:
+    URLS = (
+        ("hit", r"https://maou.audio/sound/se/maou_se_battle07.ogg"),
+        ("hit2", r"https://maou.audio/sound/se/maou_se_battle18.ogg"),
+    )
+    with requests.Session() as session:
+        session.headers.update({"Referer": "https://maou.audio/"})
+        return {name: session.get(url).content for name, url in URLS}
 
 
 def crop_image(data: bytes) -> bytes:
@@ -41,24 +59,49 @@ def crop_image(data: bytes) -> bytes:
     
 
 def init_database(db_path: PathLike):
-    with sqlite3.connect(db_path) as conn:
-        conn.execute("""
+    with sqlite3.connect(db_path) as conn, closing(conn.cursor()) as cur:
+        cur.executescript("""
             CREATE TABLE Images(
                 name TEXT NOT NULL UNIQUE,
-                image BLOB DEFAULT NULL,
+                image BLOB NOT NULL,
                 PRIMARY KEY (name)
-            )
+            );
+            CREATE TABLE Sounds(
+                name TEXT NOT NULL UNIQUE,
+                sound BLOB NOT NULL,
+                PRIMARY KEY (name)
+            );
+            CREATE TABLE Scores(
+                'datetime' TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                score INTEGER NOT NULL,
+                PRIMARY KEY (datetime)
+            );
         """)
         images = download_images()
-        conn.executemany(
+        cur.executemany(
             "INSERT INTO Images(name, image) VALUES(?, ?)",
             ((name, crop_image(image)) for name, image in images.items()),
         )
+        sounds = download_sounds()
+        cur.executemany(
+            "INSERT INTO Sounds(name, sound) VALUES(?, ?)",
+            sounds.items(),
+        )
 
 
-def load_images_from_database(db_path: PathLike) ->  dict[str, bytes]:
-    with sqlite3.connect(db_path) as conn:
-        return dict(conn.execute("SELECT name, image FROM Images"))
+def load_images(conn: sqlite3.Connection) ->  dict[str, Surface]:
+    return {
+        # name: (s := pygame.image.load(io.BytesIO(image)).convert(), s.set_colorkey(s.get_at(0, 0))) and s
+        name: pygame.image.load(io.BytesIO(image)).convert_alpha()
+        for name, image in conn.execute("SELECT name, image FROM Images")
+    }
+
+
+def load_sounds(conn: sqlite3.Connection) ->  dict[str, Sound]:
+    return {
+        name: Sound(sound)
+        for name, sound in conn.execute("SELECT name, sound FROM Sounds")
+    }
 
 
 async def main(**kwargs: Unpack[apg.CommonParams]):
@@ -70,15 +113,17 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     r = kwargs["executor"].register
     r(partial(screen.fill, bgcolor), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
+
     userdata = {
-        'db_path': __file__ + ".sqlite3",
-        'font': pygame.font.SysFont(None, 80),
-        'bgcolor': bgcolor,
+        "db_path": Path(__file__ + ".sqlite3"),
+        "font": pygame.font.SysFont(None, 80),
+        "bgcolor": bgcolor,
     }
     async with apg.open_nursery() as nursery:
-        nursery.start(confirm_before_quitting(priority=0xFFFFFD00, font=userdata["font"], **kwargs))
-        nursery.start(touch_indicator(color="grey", priority=0xFFFFFE00, **kwargs))
-        nursery.start(SceneSwitcher().run(title_scene, priority=0xFFFFFA00, userdata=userdata, **kwargs))
+        s = nursery.start
+        s(confirm_before_quitting(priority=0xFFFFFD00, font=userdata["font"], **kwargs))
+        s(touch_indicator(color="grey", priority=0xFFFFFE00, **kwargs))
+        s(SceneSwitcher().run(title_scene, priority=0xFFFFFA00, userdata=userdata, **kwargs))
 
 
 async def confirm_before_quitting(*, priority, font, **kwargs: Unpack[apg.CommonParams]):
@@ -110,13 +155,13 @@ async def title_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPa
             **kwargs))
         while True:
             await e_start.wait()
-            if Path(userdata['db_path']).exists():
+            if Path(userdata["db_path"]).exists():
                 scene_switcher.switch_to(menu_scene, FadeTransition())
                 await apg.sleep_forever()
-            if not await ask_yes_no_question("The game will download images. Proceed?", priority=0xFFFFFB00, font=font, **kwargs):
+            if not await ask_yes_no_question("The game will download data. Proceed?", priority=0xFFFFFB00, font=font, **kwargs):
                 continue
-            async with message_with_spinner("Downloading images...", priority=0xFFFFFB00, font=font, **kwargs):
-                await kwargs["clock"].run_in_thread(lambda: init_database(userdata['db_path']), polling_interval=500)
+            async with message_with_spinner("Downloading...", priority=0xFFFFFB00, font=font, **kwargs):
+                await kwargs["clock"].run_in_thread(lambda: init_database(userdata["db_path"]), polling_interval=500)
             scene_switcher.switch_to(menu_scene, FadeTransition())
             await apg.sleep_forever()
 
@@ -150,7 +195,6 @@ async def game_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPar
     target_rect = draw_target.get_rect()
     font = userdata['font']
     clock = kwargs["clock"]
-    images = load_images_from_database(userdata['db_path'])
 
     image = font.render("Running...", True, "white", userdata["bgcolor"]).convert(draw_target)
     dest = image.get_rect(center=target_rect.center)
@@ -167,4 +211,4 @@ async def game_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPar
 
 
 if __name__ == "__main__":
-    apg.run(main)
+    apg.run(main, auto_quit=False)
