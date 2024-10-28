@@ -1,4 +1,4 @@
-__all__ = ('show_messagebox', 'ask_yes_no_question', )
+__all__ = ('show_messagebox', 'ask_yes_no_question', 'message_with_spinner', )
 
 from typing import Unpack
 from collections.abc import Sequence
@@ -13,6 +13,7 @@ from pygame.font import SysFont
 from asyncpygame import CommonParams, block_input_events, Clock
 from _uix.ripple_button import ripple_button
 from _uix.anchor_layout import anchor_layout
+from _uix.progress_spinner import progress_spinner
 
 
 @asynccontextmanager
@@ -136,3 +137,49 @@ async def ask_yes_no_question(
                 await move_rects_vertically(clock, rects, -y_movement, duration=200)
                 return tasks[0].finished
 
+
+@asynccontextmanager
+async def message_with_spinner(
+        message, priority, *, dialog_size: Sequence=None, font=None,
+        **kwargs: Unpack[CommonParams]):
+    '''
+    .. code-block::
+
+        async with message_with_spinner("Hello World", priority=0xFFFFFA00, **kwargs):
+            ...
+    '''
+    bgcolor = THECOLORS["grey90"]
+    clock = kwargs["clock"]
+    draw_target = kwargs["draw_target"]
+    if font is None:
+        font = SysFont(None, 40)
+
+    with block_input_events(kwargs["sdlevent"], priority):
+        async with darken(priority=priority, **kwargs), asyncgui.open_nursery() as nursery:
+            target_rect = draw_target.get_rect()
+            if dialog_size is None:
+                w = target_rect.width - 100
+                dialog_size = (w, w / 2)
+                del w
+            dest = Rect(0, 0, *dialog_size).move_to(midbottom=target_rect.midtop)
+            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dest), priority=priority + 1):
+                s = nursery.start
+                s(anchor_layout(
+                    font.render(message, True, "black", bgcolor).convert(draw_target),
+                    label_dest := dest.scale_by(1.0, 0.2).move_to(top=dest.top).inflate(-10, -10),
+                    priority + 2,
+                    **kwargs), daemon=True)
+                spinner_dest = dest.scale_by(1.0, 0.8)
+                spinner_dest.size = (min(spinner_dest.size), ) * 2
+                spinner_dest.midbottom = dest.midbottom
+                spinner_dest.inflate_ip(-20, -20)
+                s(progress_spinner(
+                    spinner_dest,
+                    priority + 2,
+                    color="black",
+                    **kwargs), daemon=True)
+                rects = (dest, label_dest, spinner_dest, )
+                y_movement = target_rect.centery - dest.centery
+                await move_rects_vertically(clock, rects, y_movement, duration=200)
+                yield
+                await move_rects_vertically(clock, rects, -y_movement, duration=200)
