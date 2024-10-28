@@ -1,6 +1,7 @@
 __all__ = ('show_messagebox', 'ask_yes_no_question', )
 
 from typing import Unpack
+from collections.abc import Sequence
 from contextlib import asynccontextmanager
 from functools import partial
 
@@ -36,7 +37,7 @@ async def move_rects_vertically(clock: Clock, rects, movement, duration):
 
 
 async def show_messagebox(
-        message, priority, *, dialog_size: Rect=None, font=None, text_ok='OK',
+        message, priority, *, dialog_size: Sequence=None, font=None, text_ok='OK',
         **kwargs: Unpack[CommonParams]) -> bool:
     '''
     .. code-block::
@@ -53,25 +54,26 @@ async def show_messagebox(
         async with darken(priority=priority, **kwargs), asyncgui.open_nursery() as nursery:
             target_rect = draw_target.get_rect()
             if dialog_size is None:
-                dialog_size = target_rect.inflate(-100, 0)
-                dialog_size.height = dialog_size.width // 2
-            dialog_dest = dialog_size.move_to(bottom=target_rect.top)
+                w = target_rect.width - 100
+                dialog_size = (w, w / 2)
+                del w
+            dest = Rect(0, 0, *dialog_size).move_to(midbottom=target_rect.midtop)
             e_ok = asyncgui.Event()
-            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dialog_dest), priority=priority + 1):
+            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dest), priority=priority + 1):
                 s = nursery.start
                 s(anchor_layout(
                     font.render(message, True, "black", bgcolor).convert(draw_target),
-                    label_dest := dialog_dest.scale_by(1.0, 0.7).move_to(top=dialog_dest.top).inflate(-10, -10),
+                    label_dest := dest.scale_by(1.0, 0.7).move_to(top=dest.top).inflate(-10, -10),
                     priority + 2,
                     **kwargs), daemon=True)
                 s(ripple_button(
-                    font.render(text_ok, True, "white"),
-                    button_dest := dialog_dest.scale_by(0.5, 0.3).move_to(midbottom=dialog_dest.midbottom).inflate(-20, -20),
+                    font.render(text_ok, True, "white").convert_alpha(),
+                    button_dest := dest.scale_by(0.5, 0.3).move_to(midbottom=dest.midbottom).inflate(-20, -20),
                     priority + 2,
                     on_click=e_ok.fire,
                     **kwargs), daemon=True)
-                rects = (dialog_dest, label_dest, button_dest, )
-                y_movement = target_rect.centery - dialog_dest.centery
+                rects = (dest, label_dest, button_dest, )
+                y_movement = target_rect.centery - dest.centery
                 await move_rects_vertically(clock, rects, y_movement, duration=200)
                 await e_ok.wait()
                 await move_rects_vertically(clock, rects, -y_movement, duration=200)
@@ -79,7 +81,7 @@ async def show_messagebox(
 
 
 async def ask_yes_no_question(
-        question, priority, *, dialog_size: Rect=None, font=None, text_yes='Yes', text_no='No',
+        question, priority, *, dialog_size: Sequence=None, font=None, text_yes='Yes', text_no='No',
         **kwargs: Unpack[CommonParams]) -> bool:
     '''
     .. code-block::
@@ -96,33 +98,41 @@ async def ask_yes_no_question(
         async with darken(priority=priority, **kwargs), asyncgui.open_nursery() as nursery:
             target_rect = draw_target.get_rect()
             if dialog_size is None:
-                dialog_size = target_rect.inflate(-100, 0)
-                dialog_size.height = dialog_size.width // 2
-            dialog_dest = dialog_size.move_to(bottom=target_rect.top)
+                w = target_rect.width - 100
+                dialog_size = (w, w / 2)
+                del w
+            dest = Rect(0, 0, *dialog_size).move_to(midbottom=target_rect.midtop)
             e_yes = asyncgui.Event()
             e_no = asyncgui.Event()
-            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dialog_dest), priority=priority + 1):
+            spacing = 20
+            h = (dest.height - 3 * spacing) / 2
+            w = dest.width - 2 * spacing
+            label_size = (w, h)
+            button_size = ((w - spacing) / 2, h)
+            del w, h
+            with kwargs["executor"].register(partial(draw_target.fill, bgcolor, dest), priority=priority + 1):
                 s = nursery.start
                 s(anchor_layout(
                     font.render(question, True, "black", bgcolor).convert(draw_target),
-                    label_dest := dialog_dest.scale_by(1.0, 0.5).move_to(top=dialog_dest.top).inflate(-10, -10),
+                    label_dest := Rect(dest.x + spacing, dest.y + spacing, *label_size),
                     priority + 2,
                     **kwargs), daemon=True)
                 s(ripple_button(
-                    font.render(text_yes, True, "white"),
-                    yes_button_dest := dialog_dest.scale_by(0.5, 0.5).move_to(bottomright=dialog_dest.bottomright).inflate(-20, -20),
-                    priority + 2,
-                    on_click=e_yes.fire,
-                    **kwargs), daemon=True)
-                s(ripple_button(
-                    font.render(text_no, True, "white"),
-                    no_button_dest := dialog_dest.scale_by(0.5, 0.5).move_to(bottomleft=dialog_dest.bottomleft).inflate(-20, -20),
+                    font.render(text_no, True, "white").convert_alpha(),
+                    no_button_dest := Rect(label_dest.x, label_dest.bottom + spacing, *button_size),
                     priority + 2,
                     on_click=e_no.fire,
                     **kwargs), daemon=True)
-                rects = (dialog_dest, label_dest, yes_button_dest, no_button_dest, )
-                y_movement = target_rect.centery - dialog_dest.centery
+                s(ripple_button(
+                    font.render(text_yes, True, "white").convert_alpha(),
+                    yes_button_dest := Rect(no_button_dest.right + spacing, no_button_dest.y, *button_size),
+                    priority + 2,
+                    on_click=e_yes.fire,
+                    **kwargs), daemon=True)
+                rects = (dest, label_dest, yes_button_dest, no_button_dest, )
+                y_movement = target_rect.centery - dest.centery
                 await move_rects_vertically(clock, rects, y_movement, duration=200)
                 tasks = await asyncgui.wait_any(e_yes.wait(), e_no.wait())
                 await move_rects_vertically(clock, rects, -y_movement, duration=200)
                 return tasks[0].finished
+
