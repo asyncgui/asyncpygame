@@ -81,6 +81,7 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.m
     )
     process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE, bufsize=0)
     output_buffer = _create_output_buffer_for_surface(screen)
+    output_axis_order = (1, 0, 2)  # 高さ 幅 画素 の順
 
     # LOAD_FAST
     pygame_event_get = pygame.event.get
@@ -99,7 +100,7 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.m
             executor()
 
             screen_lock()
-            frame = pixels3d(screen).transpose((1, 0, 2))  # 高さ 幅 画素 の順にする
+            frame = pixels3d(screen).transpose(output_axis_order)
             numpy_copyto(output_buffer, frame)
             process_stdin_write(output_buffer)
             del frame
