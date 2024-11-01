@@ -1,7 +1,7 @@
 __all__ = ('touch_indicator', )
 
 from functools import partial
-from typing import Unpack, Self
+from typing import Unpack
 
 import pygame
 from pygame import Color, Event
@@ -12,14 +12,22 @@ import asyncpygame as apg
 class Ring:
     __slots__ = ('draw', 'pos', )
 
-    def __init__(self, draw_target, color, pos, radius, line_width):
-        self.draw = partial(self._draw, draw_target, color, radius, line_width, self)
-        self.pos = pos
+    def __init__(self, draw_target: pygame.Surface, color, initial_pos, radius, line_width):
+        ring_img = pygame.Surface((radius * 2, radius * 2)).convert(draw_target)
+        color = Color(color)
+        bgcolor = Color("black")
+        if color == bgcolor:
+            bgcolor = Color("white")
+            ring_img.fill(bgcolor)
+        ring_img.set_colorkey(bgcolor)
+        pygame.draw.circle(ring_img, color, (radius, radius), radius, line_width)
 
-    def _draw(pygame_draw_circle, draw_target, color, radius, line_width, self: Self):
-        pygame_draw_circle(draw_target, color, self.pos, radius, line_width)
+        self.draw = partial(self.__class__._draw, self, draw_target.blit, ring_img, ring_img.get_rect())
+        self.pos = initial_pos
 
-    _draw = partial(_draw, pygame.draw.circle)
+    def _draw(self, blit, ring_img, ring_dest):
+        ring_dest.center = self.pos
+        blit(ring_img, ring_dest)
 
 
 async def touch_indicator(*, color="white", radius=60, line_width=4, priority, **kwargs: Unpack[apg.CommonParams]):
