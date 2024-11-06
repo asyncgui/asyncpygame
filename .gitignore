@@ -6,4 +6,3 @@ bin/
 /asyncpygame.egg-info/
 /.pytest_cache/
 /dist
-/docs/
