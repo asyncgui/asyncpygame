@@ -1,5 +1,6 @@
 __all__ = ("run", "quit", "run_and_record", )
 
+from collections.abc import Iterator
 import pygame
 import asyncpygame as ap
 
@@ -45,11 +46,22 @@ def run(main_func, *, fps=30, auto_quit=True):
         main_task.cancel()
 
 
-def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.mkv", overwrite=False, codec='libx265',
-                   quality=0):
+def run_and_record(main_func, *, fps=30, auto_quit=True, outfile="./output.mkv", overwrite=False,
+                   outfile_options: Iterator[str]=r"-codec:v libx265 -qscale:v 0".split()):
     '''
     Runs the program while recording the screen to a video file using ffmpeg.
     Requires numpy.
+
+    .. code-block::
+
+        # H.265/HEVC, maximum quality (default)
+        run_and_record(..., outfile_options=r"-codec:v libx265 -qscale:v 0".split())
+
+        # H.265/HEVC, lossless compression
+        run_and_record(..., outfile_options=r"-codec:v libx265 -x265-params lossless=1".split())
+
+        # WebP, lossless compression, infinite loop
+        run_and_record(..., outfile_options=r"-codec:v libwebp -lossless 1 -loop 0".split(), outfile="./output.webp")
     '''
     import subprocess
     from numpy import copyto as numpy_copyto
@@ -75,9 +87,8 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, output_file="./output.m
         '-framerate', str(fps),
         '-i', '-',  # stdin as the input source
         '-an',  # no audio
-        '-codec:v', codec,
-        '-qscale:v', str(quality),
-        output_file,
+        *outfile_options,
+        outfile,
     )
     process = subprocess.Popen(ffmpeg_cmd, stdin=subprocess.PIPE, bufsize=0)
     output_buffer = _create_output_buffer_for_surface(screen)
