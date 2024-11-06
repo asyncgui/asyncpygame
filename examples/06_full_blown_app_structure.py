@@ -42,7 +42,7 @@ async def confirm_before_quitting(*, priority, **kwargs: Unpack[apg.CommonParams
             apg.quit()
 
 
-async def title_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
+async def title_scene(*, switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
     draw_target = kwargs["draw_target"]
     target_rect = draw_target.get_rect()
     font = userdata['font']
@@ -61,11 +61,11 @@ async def title_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPa
             priority=0x100,
             **kwargs))
         await e_start.wait()
-        scene_switcher.switch_to(menu_scene, FadeTransition())
+        switcher.switch_to(menu_scene, FadeTransition())
         await apg.sleep_forever()
 
 
-async def menu_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
+async def menu_scene(*, switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
     draw_target = kwargs["draw_target"]
     target_rect = draw_target.get_rect()
     font = userdata['font']
@@ -85,11 +85,11 @@ async def menu_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPar
             priority=0x100, **kwargs))
         tasks = await apg.wait_any(e_play.wait(), e_back.wait())
         next_scene = title_scene if tasks[1].finished else game_scene
-        scene_switcher.switch_to(next_scene, FadeTransition())
+        switcher.switch_to(next_scene, FadeTransition())
         await apg.sleep_forever()
 
 
-async def game_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
+async def game_scene(*, switcher, userdata, **kwargs: Unpack[apg.CommonParams]):
     draw_target = kwargs["draw_target"]
     target_rect = draw_target.get_rect()
     font = userdata['font']
@@ -103,7 +103,7 @@ async def game_scene(*, scene_switcher, userdata, **kwargs: Unpack[apg.CommonPar
             while True:
                 await clock.anim_attrs(dest, y=dest.y + 160, duration=800)
                 await clock.anim_attrs(dest, y=dest.y - 160, duration=800)
-        scene_switcher.switch_to(title_scene, FadeTransition())
+        switcher.switch_to(title_scene, FadeTransition())
         await apg.sleep_forever()
 
 

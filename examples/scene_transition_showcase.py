@@ -31,13 +31,13 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
     await SceneSwitcher().run(show_transition, priority=0xFFFFFD00, userdata=userdata, **kwargs)
 
 
-async def show_transition(*, scene_switcher, userdata, executor, sdlevent, draw_target, **__):
+async def show_transition(*, switcher, userdata, executor, sdlevent, draw_target, **__):
     font = userdata['font']
     text, transition = next(userdata['transitions'])
     img = font.render(text, True, "white").convert_alpha()
     with executor.register(partial(draw_target.blit, img, img.get_rect(center=draw_target.get_rect().center)), priority=0x100):
         await sdlevent.wait(pygame.MOUSEBUTTONDOWN, priority=0)
-        scene_switcher.switch_to(show_transition, transition)
+        switcher.switch_to(show_transition, transition)
         await apg.sleep_forever()
 
 
