@@ -27,7 +27,7 @@ It defines a transition between two scenes.
         yield
         # 3rd part
 
-    scene_switcher.switch_to(next_scene, my_transition)
+    switcher.switch_to(next_scene, my_transition)
 
 When your app switches from one scene to another, the transition between them will proceed as follows:
 
@@ -55,7 +55,7 @@ async def no_transition(**common_params):
     '''
     .. code-block::
 
-        scene_switcher.switch_to(next_scene, no_transition)
+        switcher.switch_to(next_scene, no_transition)
     '''
     yield
     yield
@@ -77,7 +77,7 @@ class SceneSwitcher:
         :param userdata: Use this to share data between scenes without relying on global variables.
         '''
         common_params = {
-            'scene_switcher': self,
+            'switcher': self,
             'sdlevent': sdlevent,
             'userdata': userdata,
             **kwargs}
@@ -106,7 +106,7 @@ class FadeTransition:
     '''
     .. code-block::
 
-        scene_switcher.switch_to(next_scene, FadeTransition())
+        switcher.switch_to(next_scene, FadeTransition())
     '''
     def __init__(self, *, overlay_color='black', out_duration=300, in_duration=300, interval=100):
         '''
@@ -147,7 +147,7 @@ class SlideTransition:
     '''
     .. code-block::
 
-        scene_switcher.switch_to(next_scene, SlideTransition())
+        switcher.switch_to(next_scene, SlideTransition())
     '''
     _valid_directions = ('right', 'left', 'up', 'down', )
 

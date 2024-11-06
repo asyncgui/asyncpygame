@@ -182,7 +182,7 @@ async def confirm_and_quit(*, priority, font, **kwargs: Unpack[apg.CommonParams]
             apg.quit()
 
 
-async def title_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
+async def title_scene(*, switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
     draw_target = kwargs["draw_target"]
     target_rect = draw_target.get_rect()
     font = userdata.font
@@ -215,7 +215,7 @@ async def title_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[ap
                 images.update(load_images(cur))
                 userdata.sounds = load_sounds(cur)
             images["gift"] = pygame.transform.scale(images["gift"], (200, 200))
-            scene_switcher.switch_to(game_scene, FadeTransition())
+            switcher.switch_to(game_scene, FadeTransition())
             await apg.sleep_forever()
 
 
@@ -436,7 +436,7 @@ async def game_timer(dest: Rect, *, duration, color=THECOLORS["ivory"], priority
         await kwargs["clock"].anim_attrs(ctx, stop_angle=start_angle, duration=duration)
 
 
-async def game_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
+async def game_scene(*, switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
     from random import randint, random
     clock = kwargs["clock"]
     draw_target = kwargs["draw_target"]
@@ -468,11 +468,11 @@ async def game_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[apg
                     hole = inactive_holes.pop(randint(0, len(inactive_holes) - 1))
                     nursery.start(actions[random() > 0.8](score, speed, inactive_holes, hole_size=hole_size, pos=hole, userdata=userdata, **kwargs))
         userdata.last_game_score = score.value
-        scene_switcher.switch_to(result_scene, FadeTransition(overlay_color=THECOLORS["white"], out_duration=1000, interval=1000, in_duration=500))
+        switcher.switch_to(result_scene, FadeTransition(overlay_color=THECOLORS["white"], out_duration=1000, interval=1000, in_duration=500))
         await apg.sleep_forever()
 
 
-async def result_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
+async def result_scene(*, switcher, userdata: UserData, **kwargs: Unpack[apg.CommonParams]):
     render = userdata.font.render
     draw_target = kwargs["draw_target"]
     target_rect = draw_target.get_rect()
@@ -503,7 +503,7 @@ async def result_scene(*, scene_switcher, userdata: UserData, **kwargs: Unpack[a
             priority=0x100,
             **kwargs))
         await kwargs["sdlevent"].wait(C.MOUSEBUTTONDOWN, priority=0x100)
-        scene_switcher.switch_to(title_scene, FadeTransition())
+        switcher.switch_to(title_scene, FadeTransition())
         await apg.sleep_forever()
 
 
