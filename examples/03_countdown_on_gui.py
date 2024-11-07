@@ -4,7 +4,7 @@ from pygame.colordict import THECOLORS
 import asyncpygame as apg
 
 
-async def main(*, clock: apg.Clock, **kwargs):
+async def main(cp: apg.CommonParams):
     pygame.init()
     pygame.display.set_caption("Countdown on GUI")
     screen = pygame.display.set_mode((400, 400))
@@ -19,7 +19,7 @@ async def main(*, clock: apg.Clock, **kwargs):
         screen.fill(bgcolor)
         screen.blit(img, img.get_rect(center=screen_center))
         pygame.display.flip()
-        await clock.sleep(1000)
+        await cp.clock.sleep(1000)
 
 
 if __name__ == "__main__":

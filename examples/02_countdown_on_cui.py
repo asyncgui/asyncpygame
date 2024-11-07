@@ -2,13 +2,13 @@ import pygame
 import asyncpygame as apg
 
 
-async def main(*, clock: apg.Clock, **kwargs):
+async def main(cp: apg.CommonParams):
     pygame.init()
 
     count_from = 3
     for i in range(count_from, -1, -1):
         print(i)
-        await clock.sleep(1000)
+        await cp.clock.sleep(1000)
     apg.quit()
 
 

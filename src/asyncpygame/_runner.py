@@ -14,11 +14,14 @@ def quit(*args):
 
 
 def run(main_func, *, fps=30, auto_quit=True):
+    from ._common_params import CommonParams
+
     pygame_clock = pygame.Clock()
     clock = ap.Clock()
     sdlevent = ap.SDLEvent()
     executor = ap.PriorityExecutor()
-    main_task = ap.start(main_func(clock=clock, sdlevent=sdlevent, executor=executor, pygame_clock=pygame_clock))
+    main_task = ap.start(main_func(CommonParams(
+        executor=executor, sdlevent=sdlevent, clock=clock, pygame_clock=pygame_clock)))
 
     if auto_quit:
         sdlevent.subscribe((pygame.QUIT, ), quit, priority=0)
@@ -66,11 +69,12 @@ def run_and_record(main_func, *, fps=30, auto_quit=True, outfile="./output.mkv",
     import subprocess
     from numpy import copyto as numpy_copyto
     from pygame.surfarray import pixels3d
+    from ._common_params import CommonParams
 
     clock = ap.Clock()
     sdlevent = ap.SDLEvent()
     executor = ap.PriorityExecutor()
-    main_task = ap.start(main_func(clock=clock, sdlevent=sdlevent, executor=executor))
+    main_task = ap.start(main_func(CommonParams(executor=executor, sdlevent=sdlevent, clock=clock)))
     screen = pygame.display.get_surface()
 
     if auto_quit:

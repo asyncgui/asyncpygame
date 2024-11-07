@@ -1,36 +1,14 @@
 __all__ = (
-    'CommonParams', 'capture_current_frame', 'block_input_events',
+    'capture_current_frame', 'block_input_events',
 )
 
-from typing import Awaitable, ContextManager, TypedDict
+from typing import Awaitable, ContextManager
 from asyncgui import ExclusiveEvent
-from asyncgui_ext.clock import Clock
 from pygame.surface import Surface
-import pygame.time
 
 from .constants import INPUT_EVENTS
 from ._priority_executor import PriorityExecutor
 from ._sdlevent import SDLEvent, Subscriber
-
-
-class CommonParams(TypedDict, total=False):
-    '''
-    Annotate ``**kwargs`` to improve auto-completion support.
-
-    .. code-block::
-
-        from typing import Unpack
-
-        async def some_func(**kwargs: Unpack[CommonParams]):
-            ...
-    '''
-    executor: PriorityExecutor
-    sdlevent: SDLEvent
-    clock: Clock
-    pygame_clock: pygame.time.Clock
-    draw_target: Surface
-    switcher: None
-    userdata: None
 
 
 async def capture_current_frame(executor: PriorityExecutor, priority, source: Surface) -> Awaitable[Surface]:

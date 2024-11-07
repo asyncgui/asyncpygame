@@ -14,13 +14,13 @@ from _uix.ripple_button import ripple_button
 from _uix.modal_dialog import ask_yes_no_question
 
 
-async def main(**kwargs: Unpack[apg.CommonParams]):
+async def main(cp: apg.CommonParams):
     pygame.init()
     pygame.display.set_caption("<Your App Title>")
-    kwargs["draw_target"] = screen = pygame.display.set_mode((800, 600))
+    cp.draw_target = screen = pygame.display.set_mode((800, 600))
 
     bgcolor = THECOLORS["black"]
-    r = kwargs["executor"].register
+    r = cp.executor.register
     r(partial(screen.fill, bgcolor), priority=0)
     r(pygame.display.flip, priority=0xFFFFFF00)
     userdata = {
@@ -28,17 +28,18 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
         'bgcolor': bgcolor,
     }
     async with apg.open_nursery() as nursery:
-        nursery.start(confirm_before_quitting(priority=0xFFFFFD00, **kwargs))
-        nursery.start(touch_indicator(color="grey", priority=0xFFFFFE00, **kwargs))
-        nursery.start(SceneSwitcher().run(title_scene, priority=0xFFFFFC00, userdata=userdata, **kwargs))
+        nursery.start(confirm_before_quitting(cp, priority=0xFFFFFD00))
+        nursery.start(touch_indicator(cp, color="grey", priority=0xFFFFFE00))
+        nursery.start(SceneSwitcher().run(title_scene, priority=0xFFFFFC00, userdata=userdata))
 
 
-async def confirm_before_quitting(*, priority, **kwargs: Unpack[apg.CommonParams]):
-    quit = partial(kwargs["sdlevent"].wait, C.QUIT, priority=priority, consume=True)
-    escape_key = partial(kwargs["sdlevent"].wait, C.KEYDOWN, priority=priority, filter=lambda e: e.key == C.K_ESCAPE, consume=True)
+async def confirm_before_quitting(cp: apg.CommonParams, priority):
+    wait = cp.sdlevent.wait
+    quit = partial(wait, C.QUIT, priority=priority, consume=True)
+    escape_key = partial(wait, C.KEYDOWN, priority=priority, filter=lambda e: e.key == C.K_ESCAPE, consume=True)
     while True:
         await apg.wait_any(quit(), escape_key())
-        if await ask_yes_no_question("Quit the app?", priority=priority, **kwargs):
+        if await ask_yes_no_question("Quit the app?", priority=priority):
             apg.quit()
 
 
