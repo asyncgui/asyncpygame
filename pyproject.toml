@@ -44,6 +44,9 @@ matplotlib = "^3.9.2"
 [tool.poetry.group.recording.dependencies]
 numpy = "^2.1.2"
 
+[tool.poetry.group.example.dependencies]
+requests = "^2.32.3"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
