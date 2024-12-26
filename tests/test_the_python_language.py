@@ -1,7 +1,7 @@
 import pytest
 
 
-def test_close_a_full_consumed_async_generator_1():
+def test_close_a_fully_consumed_async_generator_1():
     async def create_agen():
         yield
 
@@ -16,7 +16,7 @@ def test_close_a_full_consumed_async_generator_1():
         async_fn(create_agen()).send(None)
 
 
-def test_close_a_full_consumed_async_generator_2():
+def test_close_a_fully_consumed_async_generator_2():
     async def create_agen():
         return
         yield
