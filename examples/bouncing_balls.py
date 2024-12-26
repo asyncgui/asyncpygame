@@ -3,13 +3,29 @@ from functools import partial
 
 import pygame
 from pygame.colordict import THECOLORS
-from pygame import Rect, Vector2, Color
+from pygame import Rect, Vector2, Color, Surface
 
 import asyncpygame as apg
 
 
-async def bouncing_ball(*, dest: Rect, space: Rect, color, velocity: Vector2, **kwargs: Unpack[apg.CommonParams]):
-    draw_func = partial(pygame.draw.ellipse, kwargs["draw_target"], color, dest)
+BLACK = Color("black")
+WHITE = Color("white")
+
+
+def generate_ball_image(*, color, size) -> Surface:
+    img = Surface((size, size))
+    bgcolor = WHITE if color == BLACK else BLACK
+    img.fill(bgcolor)
+    pygame.draw.ellipse(img, color, img.get_rect())
+    img = img.convert()
+    img.set_colorkey(bgcolor)
+    return img
+
+
+async def bouncing_ball(*, initial_pos, size: tuple, space: Rect, color, velocity: Vector2, **kwargs: Unpack[apg.CommonParams]):
+    ball_img = generate_ball_image(color=color, size=size)
+    dest = ball_img.get_rect(center=initial_pos)
+    draw_func = partial(kwargs["draw_target"].blit, ball_img, dest)
     with kwargs["executor"].register(draw_func, kwargs["priority"]):
         async for dt in kwargs["clock"].anim_with_dt():
             dest.move_ip(velocity * (dt / 1000.0))
@@ -38,9 +54,9 @@ async def main(**kwargs: Unpack[apg.CommonParams]):
         screen_rect = screen.get_rect()
         while True:
             await clock.sleep(randint(1000, 2000))
-            ball_size = randint(20, 150)
             nursery.start(bouncing_ball(
-                dest=Rect(0, 0, ball_size, ball_size).move_to(center=screen_rect.center),
+                initial_pos=screen_rect.center,
+                size=randint(20, 150),
                 space=screen_rect,
                 color=Color(randint(0, 255), randint(0, 255), randint(0, 255)),
                 velocity=Vector2(randint(-150, 150), randint(-150, 150)),
