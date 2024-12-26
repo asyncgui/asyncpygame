@@ -96,6 +96,10 @@ class SDLEvent:
 
         # Waits for the left mouse button to be pressed.
         e = await sdlevent.wait(MOUSEBUTTONDOWN, filter=lambda e: e.button == 1)
+
+    .. note::
+
+        ``priority`` 引数は ``PriorityExecutor`` の物とは逆に働きます。すなわち大きい値で ``wait()`` しているタスクほと早く再開します。
     '''
 
     def __init__(self):
