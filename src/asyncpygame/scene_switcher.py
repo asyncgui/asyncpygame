@@ -124,12 +124,12 @@ class FadeTransition:
         overlay_surface.fill(self.overlay_color)
         set_alpha = overlay_surface.set_alpha
         with executor.register(partial(draw_target.blit, overlay_surface), priority=priority):
-            async for v in clock.interpolate_scalar(0, 255, duration=self.out_duration):
+            async for v in clock.interpolate(0, 255, duration=self.out_duration):
                 set_alpha(v)
             yield
             await clock.sleep(self.interval)
             yield
-            async for v in clock.interpolate_scalar(255, 0, duration=self.in_duration):
+            async for v in clock.interpolate(255, 0, duration=self.in_duration):
                 set_alpha(v)
 
 
@@ -191,7 +191,7 @@ class SlideTransition:
             executor.register(scroll_inst, priority),
             executor.register(partial(draw_target.blit, frame1, dest1), priority + 1),
         ):
-            async for v in clock.interpolate_scalar(0, end_pos1, duration=self.duration):
+            async for v in clock.interpolate(0, end_pos1, duration=self.duration):
                 v = int_(v)
                 if is_vertical:
                     dest1.y = v

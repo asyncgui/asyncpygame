@@ -18,7 +18,7 @@ from _uix.progress_spinner import progress_spinner
 
 @asynccontextmanager
 async def darken(*, priority, **kwargs: Unpack[CommonParams]):
-    interpolate = kwargs["clock"].interpolate_scalar
+    interpolate = kwargs["clock"].interpolate
     draw_target = kwargs["draw_target"]
     overlay_surface = Surface(draw_target.size)
     set_alpha = overlay_surface.set_alpha
@@ -32,7 +32,7 @@ async def darken(*, priority, **kwargs: Unpack[CommonParams]):
 
 async def move_rects_vertically(clock: Clock, rects, movement, duration):
     org_ys = tuple(rect.y for rect in rects)
-    async for v in clock.interpolate_scalar(0, movement, duration=duration):
+    async for v in clock.interpolate(0, movement, duration=duration):
         for rect, org_y in zip(rects, org_ys):
             rect.y = org_y + v
 

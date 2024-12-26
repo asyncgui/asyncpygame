@@ -27,13 +27,13 @@ exceptiongroup = {version = ">=1.0.4,<2.0.0", markers = "python_version < \"3.11
 
 [[package]]
 name = "asyncgui-ext-clock"
-version = "0.5.1"
+version = "0.5.2"
 description = "An event scheduler for asyncgui programs"
 optional = false
 python-versions = "<4.0,>=3.10"
 files = [
-    {file = "asyncgui_ext_clock-0.5.1-py3-none-any.whl", hash = "sha256:511ebdfaf644f2f3e30b6c9656345c0781c994b0d63ce7b51dbd7a098a164a4e"},
-    {file = "asyncgui_ext_clock-0.5.1.tar.gz", hash = "sha256:275950dbcc0d7145c34f026f49aaf70d76e877223b673be38d2076c6d286fcfb"},
+    {file = "asyncgui_ext_clock-0.5.2-py3-none-any.whl", hash = "sha256:c857ec6f52b1d8471b9654989e27d57e6bfec97214e36bfc7a470c0feed2047e"},
+    {file = "asyncgui_ext_clock-0.5.2.tar.gz", hash = "sha256:22c6efc8d8da6194e500e5f190ad978352a57e1e4289beab4059a2421a25b6b3"},
 ]
 
 [package.dependencies]
