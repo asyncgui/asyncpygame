@@ -324,7 +324,7 @@ async def pop_out_enemy(
                 sounds["hit"].play()
                 plus_one = with_isolated_alpha(images["plus_one"])
                 with register(partial(draw_target.blit, plus_one, plus_one.get_rect(midtop=enemy_dest.midtop).move(0, 30)), priority + 0xFFFF0000):
-                    async for v in clock.interpolate_scalar(255, 0, duration=500):
+                    async for v in clock.interpolate(255, 0, duration=500):
                         enemy_img.set_alpha(v)
                         plus_one.set_alpha(v)
             else:
@@ -403,7 +403,7 @@ async def pop_out_ally(
                     await sleep(1000 * speed)
             if hit_tracker.finished:
                 sounds["hit"].play()
-                async for v in clock.interpolate_scalar(255, 0, duration=500):
+                async for v in clock.interpolate(255, 0, duration=500):
                     ally_img.set_alpha(v)
             else:
                 score.value += 3
@@ -414,7 +414,7 @@ async def pop_out_ally(
                 draw_ally_req.callback = partial(draw_target.blit, ally_img, ally_dest, ally_clip)
                 plus_three = with_isolated_alpha(images["plus_three"])
                 with register(partial(draw_target.blit, plus_three, plus_three.get_rect(midbottom=ally_dest.midtop)), priority + 0xFFFF0000):
-                    async for v in clock.interpolate_scalar(255, 0, duration=500):
+                    async for v in clock.interpolate(255, 0, duration=500):
                         plus_three.set_alpha(v)
                 await apg.wait_all(
                     anim_attrs(ally_dest, top=ally_dest.bottom, duration=500 * speed),
