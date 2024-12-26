@@ -108,22 +108,30 @@ class FadeTransition:
 
         switcher.switch_to(next_scene, FadeTransition())
     '''
-    def __init__(self, *, overlay_color='black', out_duration=300, in_duration=300, interval=100):
+    def __init__(self, *, overlay_color='black', overlay_image=None, out_duration=300, in_duration=300, interval=100):
         '''
+        :param overlay_image: If specified, this image will be used instead of the ``overlay_color``.
         :param out_duration: The duration of the fadeout animation.
         :param in_duration: The duration of the fadein animation.
         :param interval: The interval between the fadeout animation and the fadein animation.
+
+        .. versionchanged:: 0.2.0
+            Added the ``overlay_image`` parameter.
         '''
-        self.overlay_color = overlay_color
+        self._overlay_color = overlay_color
+        self._overlay_image = overlay_image
         self.out_duration = out_duration
         self.in_duration = in_duration
         self.interval = interval
 
     async def __call__(self, *, priority, draw_target, clock, executor, **kwargs):
-        overlay_surface = draw_target.copy()
-        overlay_surface.fill(self.overlay_color)
-        set_alpha = overlay_surface.set_alpha
-        with executor.register(partial(draw_target.blit, overlay_surface), priority=priority):
+        if (img := self._overlay_image) is None:
+            img = draw_target.copy()
+            img.fill(self._overlay_color)
+            self._overlay_image = img
+        set_alpha = img.set_alpha
+        target_center = draw_target.get_rect().center
+        with executor.register(partial(draw_target.blit, img, img.get_rect(center=target_center)), priority=priority):
             async for v in clock.interpolate(0, 255, duration=self.out_duration):
                 set_alpha(v)
             yield
